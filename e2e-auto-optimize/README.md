@@ -25,7 +25,7 @@
 ## 快速安装
 
 ```bash
-npx skills add https://gitcode.com/boostkit/AcclibSkills e2e-auto-optimize
+npx skills add https://gitcode.com/boostkit/AcclibSkills.git --skill e2e-auto-optimize
 ```
 
 ## 快速使用
@@ -92,6 +92,7 @@ python scripts/e2e_optimize.py check-environment --config e2e-auto-optimize.conf
 
 ## 安全边界
 
+- 每次迭代必须满足ut完全通过，判断完全通过的方式是：若ut的**exit code = 0**则算作通过，否则不通过，本轮不继续做性能验证。
 - 目标仓库有未提交变更时，默认停止。也可以通过提示LLM忽略脏变更或给e2e_optimize.py增加参数`--allow-dirty`。
 - 不自动 push。
 - 不写入远端全局 Git 配置。
