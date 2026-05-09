@@ -34,11 +34,11 @@
 ### SKILL 命名规范
 
 - `SKILL.md` 文件必须严格命名为 `SKILL.md`（区分大小写），不接受任何变体（如 `SKILL.MD`、`skill.md`）。
-- SKILL 文件夹命名必须使用**烤串命名法（kebab-case）**，例如 `e2e-code-optimization`。
-  - ✅ 正确示例：`e2e-code-optimization`
-  - ❌ 错误示例：`E2E Code Optimization`（含空格）
-  - ❌ 错误示例：`e2e_code_optimization`（使用下划线）
-  - ❌ 错误示例：`E2ECodeOptimization`（使用大写）
+- SKILL 文件夹命名必须使用**烤串命名法（kebab-case）**，例如 `e2e-auto-optimize`。
+  - ✅ 正确示例：`e2e-auto-optimize`
+  - ❌ 错误示例：`E2E auto Optimize`（含空格）
+  - ❌ 错误示例：`e2e_auto_optimize`（使用下划线）
+  - ❌ 错误示例：`E2EAutoOptimize`（使用大写）
 
 ### 存放规则
 
@@ -82,13 +82,13 @@ agent-skills/
 npx skills add boostkit/skills --list
 
 # 安装指定 Skill
-npx skills add boostkit/skills --skill e2e-code-optimization
+npx skills add boostkit/skills --skill e2e-auto-optimize
 
 # 将 Skills 安装到特定 Agent（例如 trae 和 opencode）
 npx skills add boostkit/skills -a trae -a opencode
 
 # 非交互式安装（适合 CI/CD 场景）
-npx skills add boostkit/skills --skill e2e-code-optimization -g -a opencode -y
+npx skills add boostkit/skills --skill e2e-auto-optimize -g -a opencode -y
 
 # 安装仓库中的所有 Skills
 npx skills add boostkit/skills --all
@@ -100,7 +100,8 @@ npx skills add boostkit/skills --all
 
 | 序号 | Skill 名称 | 相对路径 | 简述 | 开发人员 | 维护人员 |
 |---|---|---|---|---|---|
-| 1 | e2e-code-optimization | skills/e2e-code-optimization | 针对加速库端到端的性能优化 skills。 | 王绍宇 | 王绍宇 |
+| 1 | e2e-auto-optimize | skills/e2e-auto-optimize | 针对加速库端到端的性能优化 skills。 | 王绍宇 | 王绍宇 |
+| 2 | gitcode-review | skills/gitcode-review | 对gitcode PR进行AI检视的skill。 | 王绍宇 | 王绍宇 |
 
 ---
 
