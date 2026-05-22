@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Template: reproducible environment setup script generated during env-deploy-for-codex use.
 # Replace placeholder sections with effective, idempotent commands from the deployment session.
+# For SSH deployments, run this script inside the remote project directory; do not add ssh wrapping here.
 
 set -euo pipefail
 

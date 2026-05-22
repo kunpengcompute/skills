@@ -16,6 +16,7 @@ Preserve the existing host environment. Prefer version-compatible installation, 
 | Java Maven and Gradle both present | Markers, wrappers, README evidence | User selects Maven or Gradle |
 | Required credentials missing | Dependency source, credential type, safe retry command | User provides credential/config or skips |
 | Runtime unavailable and install path is unsafe | Required version, current version, possible installation methods | User installs manually, accepts install, or skips |
+| SSH host key, private key passphrase, SSH password, sudo password, or remote permissions block progress | Remote host, remote project path, failing command, stderr with secrets redacted | User confirms trust/manual setup, changes connection settings, skips, or terminates |
 
 ## Unit Test Failure Flow
 
@@ -40,3 +41,5 @@ Preserve the existing host environment. Prefer version-compatible installation, 
 - Avoid destructive package-manager operations such as autoremove, purge, or forced downgrades.
 - Do not store secrets in `deploy.log`, `setup.sh`, or the final report. Redact tokens and passwords.
 - Any command added to `setup.sh` must be safe to repeat or guarded by an existence/version check.
+- Do not auto-accept unknown or changed SSH host keys, enter SSH/passphrase/sudo prompts, modify SSH client config, upload local code, clone remotely, or overwrite the remote project directory.
+- In SSH mode, run only against the confirmed `--remote-host` and existing `--remote-project`; generated `setup.sh` must remain runnable inside the remote project directory without SSH wrapping.
