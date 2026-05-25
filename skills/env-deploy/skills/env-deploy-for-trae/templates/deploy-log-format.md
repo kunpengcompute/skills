@@ -5,6 +5,9 @@ Use this format for `deploy.log` entries.
 ```text
 ================================================================================
 Timestamp: 2026-04-27T00:00:00+08:00
+Deployment mode: local|ssh
+Remote host: user@host or blank for local
+Remote project: /absolute/remote/project or blank for local
 Step: short human-readable step name
 Working directory: /absolute/project/path
 Command:
@@ -26,4 +29,5 @@ Decision:
 - Replace tokens with `<REDACTED_TOKEN>`.
 - Replace passwords with `<REDACTED_PASSWORD>`.
 - Replace private repository credentials with `<REDACTED_CREDENTIAL>`.
+- Never log SSH private key contents, private key passphrases, SSH passwords, or sudo passwords.
 - Keep package names, versions, paths, and non-secret URLs when they are useful for reproduction.

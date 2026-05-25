@@ -4,6 +4,9 @@
 
 - Path:
 - Source:
+- Deployment mode:
+- Remote host:
+- Remote project:
 - Detected type:
 - Build tool:
 - Linux distribution:

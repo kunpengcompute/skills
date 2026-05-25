@@ -13,6 +13,8 @@ Detect the distribution from `/etc/os-release`.
 
 Install system packages only when required by build files, README/INSTALL, or compiler errors. Prefer minimal packages and record each package in `deploy.log` and `setup.sh`.
 
+For SSH deployments, detect and install packages on the remote Linux server only when `--apply` is used. Dry-run does not connect to the remote host, and system package installation remains opt-in through `--install-system-packages`.
+
 ## Dependency Discovery Priority
 
 1. Parse structured build and dependency files.

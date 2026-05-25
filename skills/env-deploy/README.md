@@ -21,6 +21,7 @@
 
 - Detect C++, Python, Go, Java, and Docker project markers.
 - Plan build, dependency, runtime, and unit-test commands.
+- Plan or apply deployment commands on an SSH-accessible Linux server when the project already exists remotely.
 - Default to dry-run mode so commands can be reviewed before execution.
 - Execute project-level automation only when `--apply` is provided.
 - Keep system package installation opt-in through `--install-system-packages`.
@@ -31,6 +32,7 @@
 
 - 自动识别 C++、Python、Go、Java、Docker 项目标识。
 - 规划构建、依赖、运行时和单元测试命令。
+- 当项目已存在于远程服务器时，可通过 SSH 规划或执行部署命令。
 - 默认 dry-run，先生成计划再由用户决定是否执行。
 - 只有显式传入 `--apply` 才会执行项目级自动化。
 - 系统包安装必须额外传入 `--install-system-packages`。
@@ -46,6 +48,7 @@ The automation must pause and ask for an explicit user decision before continuin
 - Project type detection is ambiguous.
 - A Java project has both Maven and Gradle markers without a clear preference.
 - Credentials, private repository settings, or manual runtime installation are required.
+- SSH host key trust, private key passphrase, SSH password, sudo password, or remote project permissions require manual handling.
 
 以下情况必须暂停并等待用户明确确认：
 
@@ -54,6 +57,7 @@ The automation must pause and ask for an explicit user decision before continuin
 - 项目类型识别存在歧义。
 - Java 项目同时存在 Maven 和 Gradle 标识且缺少明确偏好。
 - 需要凭据、私有仓库配置或手动安装运行时。
+- 需要处理 SSH 主机信任、私钥口令、SSH 密码、sudo 密码或远程项目权限。
 
 The scripts do not automatically replace drivers, perform destructive package-manager cleanup, enter credentials, or fix application code.
 
@@ -184,6 +188,15 @@ python3 "$SKILL_DIR/scripts/env_deploy.py" --project /path/to/project --apply
 # Include package-manager installation after review / 审核后包含系统包安装
 python3 "$SKILL_DIR/scripts/env_deploy.py" --project /path/to/project --apply --install-system-packages
 
+# SSH dry-run for an existing remote project path / 对已有远程项目路径执行 SSH dry-run
+python3 "$SKILL_DIR/scripts/env_deploy.py" --remote-host user@host --remote-project /srv/app --component-type python
+
+# SSH apply on the remote Linux server / 在远程 Linux 服务器上通过 SSH 执行
+python3 "$SKILL_DIR/scripts/env_deploy.py" --remote-host user@host --remote-project /srv/app --component-type python --apply
+
+# SSH with port, key, and OpenSSH options / 使用端口、私钥和 OpenSSH 选项
+python3 "$SKILL_DIR/scripts/env_deploy.py" --remote-host user@host --remote-project /srv/app --remote-port 2222 --remote-key ~/.ssh/id_ed25519 --remote-ssh-option ServerAliveInterval=30 --component-type python
+
 # Resolve ambiguity / 显式解决歧义
 python3 "$SKILL_DIR/scripts/env_deploy.py" --project /path/to/project --component-type python --apply
 python3 "$SKILL_DIR/scripts/env_deploy.py" --project /path/to/project --component-type java --java-tool maven --apply
@@ -256,23 +269,25 @@ The deployment helper writes artifacts to the target project root:
 - `deploy.log`: full command log, timestamps, outputs, exit codes, and decisions.
 - `setup.sh`: repeatable setup script generated from planned or successful commands.
 - `deploy-report.md`: structured summary of success, failure, skipped steps, and warnings.
+- SSH mode writes artifacts locally, defaulting to `./env-deploy-remote-artifacts`, while `setup.sh` remains a script intended to run inside the remote project directory.
 
 - `deploy.log`：完整命令日志、时间戳、输出、退出码和决策记录。
 - `setup.sh`：由规划或成功命令生成的可重复执行安装脚本。
 - `deploy-report.md`：成功、失败、跳过和警告项的结构化汇总。
+- SSH 模式会把产物写到本地，默认目录为 `./env-deploy-remote-artifacts`；其中 `setup.sh` 仍是供远程项目目录内直接执行的脚本。
 
 ## Current Limitations / 当前限制
 
 - Linux only.
 - No Windows or macOS support.
-- No remote SSH deployment.
+- SSH mode requires an existing remote project path; it does not upload code, clone remotely, or auto-accept host keys.
 - No conda environment management.
 - No automatic driver replacement.
 - No automatic code fixes.
 
 - 仅支持 Linux。
 - 不支持 Windows 或 macOS。
-- 不支持远程 SSH 部署。
+- SSH 模式要求远程项目路径已存在；不会上传代码、远程 clone 或自动接受主机密钥。
 - 不支持 conda 环境管理。
 - 不自动替换驱动。
 - 不自动修复业务代码。

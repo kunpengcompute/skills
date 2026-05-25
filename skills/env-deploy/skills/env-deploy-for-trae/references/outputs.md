@@ -1,6 +1,6 @@
 # Output Artifacts
 
-Deployment artifacts are written to the target project root, not to the Skill directory.
+Deployment artifacts are written to the target project root for local deployments, not to the Skill directory. SSH mode writes artifacts to the local output directory, defaulting to `./env-deploy-remote-artifacts`.
 
 ## `deploy.log`
 
@@ -9,6 +9,7 @@ Record the complete deployment process:
 - Timestamp
 - Step name
 - Working directory
+- Deployment mode, remote host, and remote project path when SSH mode is used
 - Command
 - Exit code
 - Standard output and error
@@ -33,6 +34,8 @@ Use `templates/setup.sh` as the starter shape.
 
 When `scripts/env_deploy.py` is used, it generates `setup.sh` automatically from planned or successful repeatable commands. Review generated commands before reusing the script on another host.
 
+For SSH deployments, `setup.sh` must contain commands that run inside the remote project directory. Do not wrap those commands in `ssh`; the execution log already records the SSH command preview.
+
 ## Terminal Summary
 
 At the end of deployment, print a structured summary with these sections:
@@ -52,6 +55,7 @@ When `scripts/env_deploy.py` is used, it writes `deploy-report.md` in addition t
 
 - `deploy.log` contains every command and exit result.
 - `setup.sh` contains only repeatable effective commands.
+- SSH artifacts record the remote host and remote project path without storing key material, passphrases, passwords, or tokens.
 - Final summary separates success, failed, skipped, and warning items.
 - Any user confirmation is recorded with enough context to understand the decision.
 - Secrets are not present in artifacts.

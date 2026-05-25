@@ -1,6 +1,6 @@
 ---
 name: env-deploy-for-codex
-description: Use when asked to automatically deploy a local or cloned code project's runtime environment on Linux, including project detection, dependency planning, optional command execution, build, unit-test verification, reproducible setup script generation, and deployment reporting. Supports C++, Python, Go, Java, and Docker projects, with required user confirmation for destructive driver changes, unresolved test failures, and ambiguous project or build-tool detection.
+description: Use when asked to automatically deploy a local, cloned, or SSH-remote code project's runtime environment on Linux, including project detection, dependency planning, optional command execution, build, unit-test verification, reproducible setup script generation, and deployment reporting. Supports C++, Python, Go, Java, and Docker projects, with required user confirmation for destructive driver changes, unresolved test failures, and ambiguous project or build-tool detection.
 ---
 
 # env-deploy-for-codex
@@ -9,13 +9,14 @@ Deploy a code project's runtime environment on Linux in Codex and leave behind r
 
 ## Scope
 
-Use this Skill for Linux projects that are C++, Python, Go, Java, Docker, or a clear combination of those types. Do not use it for Windows, macOS, remote SSH deployment, conda-based environment management, unsupported project types, or running C++/Python/Go/Java deployment inside Docker unless the user explicitly changes scope.
+Use this Skill for local Linux projects or SSH-accessible remote Linux servers that are C++, Python, Go, Java, Docker, or a clear combination of those types. Do not use it for Windows, macOS, conda-based environment management, unsupported project types, remote code upload, remote clone, or running C++/Python/Go/Java deployment inside Docker unless the user explicitly changes scope.
 
 ## Core Workflow
 
 1. **Confirm project source**
    - If the user provides a local absolute path, work in that project directly.
    - If the user provides a Git URL, clone it locally. Use SSH for `git@...` URLs and HTTPS/token credentials for `https://...` URLs.
+   - If the user provides `--remote-host` and `--remote-project`, treat the remote project path as already present on that Linux server. Do not upload code, clone remotely, or overwrite the remote directory.
    - If source location is missing or inaccessible, ask the user for the project path or repository URL.
 
 2. **Run automated detection**
@@ -41,6 +42,11 @@ Use this Skill for Linux projects that are C++, Python, Go, Java, Docker, or a c
      python3 "$SKILL_DIR/scripts/env_deploy.py" --project /path/to/project
      ```
    - Add `--apply` only when the user wants commands executed on the host.
+   - For SSH remote planning, include both remote arguments:
+     ```bash
+     python3 "$SKILL_DIR/scripts/env_deploy.py" --remote-host user@host --remote-project /srv/app --component-type python
+     ```
+   - Add `--apply` only when the user wants commands executed on the remote Linux server over SSH.
 
 3. **Detect project type**
    - Inspect project markers and README/INSTALL files before executing installation commands.
@@ -86,6 +92,15 @@ python3 "$SKILL_DIR/scripts/env_deploy.py" --project /path/to/project --apply
 # Include package-manager system package installation
 python3 "$SKILL_DIR/scripts/env_deploy.py" --project /path/to/project --apply --install-system-packages
 
+# SSH dry-run for an existing remote project path
+python3 "$SKILL_DIR/scripts/env_deploy.py" --remote-host user@host --remote-project /srv/app --component-type python
+
+# SSH apply on the remote Linux server
+python3 "$SKILL_DIR/scripts/env_deploy.py" --remote-host user@host --remote-project /srv/app --component-type python --apply
+
+# SSH with non-default port, key, and OpenSSH option
+python3 "$SKILL_DIR/scripts/env_deploy.py" --remote-host user@host --remote-project /srv/app --remote-port 2222 --remote-key ~/.ssh/id_ed25519 --remote-ssh-option ServerAliveInterval=30 --component-type python
+
 # Resolve ambiguity explicitly
 python3 "$SKILL_DIR/scripts/env_deploy.py" --project /path/to/project --component-type python --apply
 python3 "$SKILL_DIR/scripts/env_deploy.py" --project /path/to/project --component-type java --java-tool maven --apply
@@ -102,6 +117,7 @@ Pause and ask the user before proceeding when:
 - Project type detection is ambiguous.
 - A Java project contains both Maven and Gradle markers and no clear preference.
 - A necessary credential, token, private package repository setting, or manual runtime installation is missing.
+- SSH connection, host key trust, private key passphrase, sudo password, or remote project permissions require manual action.
 
 When pausing, show the current state, the requested state, risk or impact, and the available choices. Continue only after the user gives an explicit decision.
 
