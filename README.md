@@ -102,7 +102,8 @@ npx skills add boostkit/skills --all
 |---|---|---|---|---|---|
 | 1 | e2e-auto-optimize | skills/e2e-auto-optimize | 针对加速库端到端的性能优化 skills。 | 王绍宇 | 王绍宇 |
 | 2 | gitcode-review | skills/gitcode-review | 对gitcode PR进行AI检视的skill。 | 王绍宇 | 王绍宇 |
-| 3 | paper-digest | skills/paper-digest | 按"方向 + 时间窗"自动收集内存库/编译器优化方向论文：4 阶段流水线（动态发现 + 粗分类 + 4 段摘要 + Jinja 渲染），支持 Claude subagent 或 DeepSeek API 作为 LLM 后端。 | 黄晓权 | 黄晓权 |
+| 3 | magazine-collect | skills/magazine-collect | 按月刊收集规则（如 compiler-magazine-collect.md）对技术领域近 N 月动态做 LLM-first 汇总，产出单板块中文 digest md；`mode=magazine` 全量跑并拼接月刊；`mode=html` 产月刊 HTML 视觉版；`mode=eml` 把 HTML 打包为可双击直发的 `.eml` 邮件版。 | 黄晓权 | 黄晓权 |
+| 4 | paper-digest | skills/paper-digest | 按"方向 + 时间窗"自动收集内存库/编译器优化方向论文：4 阶段流水线（动态发现 + 粗分类 + 4 段摘要 + Jinja 渲染），支持 Claude subagent 或 DeepSeek API 作为 LLM 后端。 | 黄晓权 | 黄晓权 |
 
 ---
 
