@@ -1,6 +1,6 @@
 ---
 name: perf-topdown
-description: Combine devkit top-down and perf annotate data to diagnose CPU performance bottlenecks. Cross-validate "where" (perf annotate: which instructions stall) with "why" (top-down: which pipeline stage is blocked). Use this skill whenever the user wants to understand why a program doesn't reach theoretical peak performance, needs combined top-down + perf hotspot analysis, or asks about multi-level bottleneck diagnosis. All perf-level analysis methods (record, annotate, SPE, PMU events, DDRC bandwidth) are covered by the perf-hotspot skill.
+description: Combine devkit top-down and perf annotate data to diagnose CPU performance bottlenecks. Cross-validate "where" (perf annotate, which instructions stall) with "why" (top-down, which pipeline stage is blocked). Use this skill whenever the user wants to understand why a program doesn't reach theoretical peak performance, needs combined top-down + perf hotspot analysis, or asks about multi-level bottleneck diagnosis. All perf-level analysis methods (record, annotate, SPE, PMU events, DDRC bandwidth) are covered by the perf-hotspot skill.
 ---
 
 # 联合 Top-Down + Perf 瓶颈诊断

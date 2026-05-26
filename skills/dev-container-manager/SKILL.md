@@ -54,7 +54,51 @@ If any critical parameter is missing, ask the user. For obvious defaults
 (cores, memory, image), assume the default and mention it in passing; only
 stop to ask if the user's request is genuinely ambiguous.
 
-### Step 2: Environment precheck
+### Step 2: SSH connection precheck
+
+Before running any remote commands, verify that the agent can SSH to the
+server silently (key-pair auth, no password prompt). Password-based SSH
+does not work for automated/non-interactive use — the agent cannot type a
+password.
+
+**Check silently:**
+
+```bash
+ssh -o PasswordAuthentication=no -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new <user>@<server> 'echo ssh_ok' 2>&1
+```
+
+| Output | Meaning | Action |
+|--------|---------|--------|
+| `ssh_ok` | Key-pair auth works | Skip to Step 3. |
+| `Permission denied (publickey)` | Server requires a key, local key not authorized | **Run setup script below.** |
+| Other error / timeout | Network or server-config issue | Report the raw error and stop. |
+
+**If key auth fails, present the user with ONE command:**
+
+```
+SSH 密钥认证未配置，请在终端执行以下命令完成配置（只需输入一次远程服务器密码）：
+
+    bash <skill-path>/scripts/setup_ssh_key.sh <user>@<server>
+```
+
+The bundled script `scripts/setup_ssh_key.sh` handles the full flow:
+local key check, key generation if needed, `ssh-copy-id` (or manual SCP
+fallback), and final verification — with clear per-step output.
+
+After the user confirms success, retry the silent check. If it still
+fails, the script's output will already have diagnostics; report them.
+
+**Edge case — both sides locked:** If `PasswordAuthentication` is
+disabled on the server AND the key isn't authorized yet, the script
+can't copy the key. Read the local public key (`cat ~/.ssh/id_ed25519.pub`)
+and tell the user:
+
+> 服务器已禁用密码登录，且本机公钥未授权。请联系管理员将以下公钥添加到服务器的 ~/.ssh/authorized_keys：
+> ```
+> <public key content>
+> ```
+
+### Step 3: Environment precheck
 
 Before allocating resources, verify the Docker environment is healthy. Run
 the bundled precheck script:
@@ -70,7 +114,7 @@ This outputs JSON with two sections:
 The script tests connectivity to `registry-1.docker.io`, `hub.docker.com`,
 and `index.docker.io`. Two outcomes:
 
-**Hub reachable** — No action needed, proceed to Step 3.
+**Hub reachable** — No action needed, proceed to Step 4.
 
 **Hub unreachable** — Check if registry mirrors already exist in
 `/etc/docker/daemon.json`. If none, auto-configure mirrors:
@@ -164,7 +208,7 @@ Threshold: **128 GB**. If any of the three paths has less than 128 GB free:
 
 If all three paths have >128 GB free, report "磁盘空间充足" and proceed.
 
-### Step 3: Check remote resources
+### Step 4: Check remote resources
 
 Run the bundled resource check script on the remote server. This collects:
 CPU topology (NUMA nodes, core lists, free cores per node), total/free
@@ -199,7 +243,7 @@ NUMA 节点:
 If resources are insufficient, report the shortfall clearly and stop. Example:
 "该服务器仅有 8 个空闲核心（分布于不同 NUMA 节点），无法分配连续 16 核。"
 
-### Step 4: Allocate resources
+### Step 5: Allocate resources
 
 Pick resources that don't conflict with existing containers.
 
@@ -223,7 +267,7 @@ Pick resources that don't conflict with existing containers.
   and not bound on the host wins.
 - Command: `for port in $(seq 2222 2300); do ss -tlnp | grep -q ":$port " || { echo $port; break; }; done`
 
-### Step 5: Generate SSH key pair
+### Step 6: Generate SSH key pair
 
 Generate locally in the current project directory:
 
@@ -233,22 +277,24 @@ ssh-keygen -t ed25519 -f dev_container_<username>_key -N "" -C "dev_container_<u
 
 Store the key filename for the connection info output.
 
-### Step 6: Create the container
+### Step 7: Create the container
 
 Use the bundled `scripts/create_container.sh` script. Read it first, then
 customize and pipe it to the remote host. The script handles:
 
-1. Pulling the image
+1. Checking if the image exists locally; only pulling if absent
 2. Creating the container with `--cpuset-cpus`, `--memory`, `--memory-swap`,
    `--cpus`, `--hostname`, `--restart=unless-stopped`, port mapping
 3. Starting the container
-4. Installing openssh-server and dev tools (gcc, g++, python3, git, vim,
-   make, cmake, golang)
-5. Injecting the public key into `/root/.ssh/authorized_keys`
-6. Configuring sshd (key-only auth, no passwords)
-7. Committing the container as `dev-<username>:latest` with an entrypoint
+4. Checking if `sshd` is already present; installing `openssh-server` only if missing
+5. Optionally installing dev tools (gcc, g++, python3, git, vim, make, cmake,
+   golang) — controlled by `INSTALL_TOOLS=true`. Default is to skip dev tools.
+   Each tool is checked individually and only installed if missing.
+6. Injecting the public key into `/root/.ssh/authorized_keys`
+7. Configuring sshd (key-only auth, no passwords)
+8. Committing the container as `dev-<username>:latest` with an entrypoint
    script that auto-starts sshd
-8. Recreating the container from the committed image
+9. Recreating the container from the committed image
 
 The script accepts environment variables for all parameters:
 
@@ -260,13 +306,18 @@ ssh <user>@<server> 'CONTAINER_NAME=dev_container_<username> \
   HOST_PORT=2222 \
   USERNAME=<username> \
   PUBKEY="<public-key-content>" \
+  INSTALL_TOOLS=true \
   bash -s' < <skill-path>/scripts/create_container.sh
 ```
 
-If the image is openeuler-based, the script installs tools via `dnf`.
-If ubuntu/debian-based, via `apt-get`. The script auto-detects.
+After container creation, ask the user if they want to install dev tools.
+If yes, run the script again with `INSTALL_TOOLS=true` (it will skip steps
+that are already done and only install missing tools).
 
-### Step 7: Report connection info
+If the image is openeuler-based, installs via `dnf`.
+If ubuntu/debian-based, via `apt-get`. Auto-detected.
+
+### Step 8: Report connection info
 
 After creation succeeds, present the user with a clear summary:
 
@@ -394,8 +445,9 @@ variables first.
   info and existing container allocations. Outputs JSON for parsing.
 - `create_container.sh` — Runs on remote host. Expects env vars:
   `CONTAINER_NAME`, `IMAGE`, `CPUSET_CPUS`, `MEMORY`, `HOST_PORT`,
-  `USERNAME`, `PUBKEY`. Handles the full create-install-configure-commit
-  pipeline.
+  `USERNAME`, `PUBKEY`. Optional: `INSTALL_TOOLS=true` to install dev tools.
+  Handles the full create-install-configure-commit pipeline. Skips image pull,
+  sshd install, and dev tool install if already present.
 - `list_containers.sh` — Runs on remote host. Outputs formatted table of all
   `dev_container_*` containers with resource details and SSH connection
   commands.

@@ -79,20 +79,22 @@ agent-skills/
 
 ```bash
 # 列出 kunpeng/agent-skills 仓库中包含的所有 Skills
-npx skills add boostkit/skills --list
+npx skills add https://gitcode.com/boostkit/skills.git --list
 
 # 安装指定 Skill
-npx skills add boostkit/skills --skill e2e-auto-optimize
+npx skills add https://gitcode.com/boostkit/skills.git --skill e2e-auto-optimize
 
 # 将 Skills 安装到特定 Agent（例如 trae 和 opencode）
-npx skills add boostkit/skills -a trae -a opencode
+npx skills add https://gitcode.com/boostkit/skills.git -a trae -a opencode
 
 # 非交互式安装（适合 CI/CD 场景）
-npx skills add boostkit/skills --skill e2e-auto-optimize -g -a opencode -y
+npx skills add https://gitcode.com/boostkit/skills.git --skill e2e-auto-optimize -g -a opencode -y
 
 # 安装仓库中的所有 Skills
-npx skills add boostkit/skills --all
+npx skills add https://gitcode.com/boostkit/skills.git --all
 ```
+`常用agent：trae, opencode, claude-code, codex`
+
 
 ## SKILL 索引目录
 
@@ -104,6 +106,10 @@ npx skills add boostkit/skills --all
 | 2 | gitcode-review | skills/gitcode-review | 对gitcode PR进行AI检视的skill。 | 王绍宇 | 王绍宇 |
 | 3 | magazine-collect | skills/magazine-collect | 按月刊收集规则（如 compiler-magazine-collect.md）对技术领域近 N 月动态做 LLM-first 汇总，产出单板块中文 digest md；`mode=magazine` 全量跑并拼接月刊；`mode=html` 产月刊 HTML 视觉版；`mode=eml` 把 HTML 打包为可双击直发的 `.eml` 邮件版。 | 黄晓权 | 黄晓权 |
 | 4 | paper-digest | skills/paper-digest | 按"方向 + 时间窗"自动收集内存库/编译器优化方向论文：4 阶段流水线（动态发现 + 粗分类 + 4 段摘要 + Jinja 渲染），支持 Claude subagent 或 DeepSeek API 作为 LLM 后端。 | 黄晓权 | 黄晓权 |
+| 5 | devkit-perf | skills/devkit-perf | 使用 `devkit tuner top-down` 采集并解读 CPU 微架构 Top-Down 指标，识别 Frontend/Core/Memory 等流水线瓶颈。 | 廖思睿 | 廖思睿 |
+| 6 | perf-hotspot | skills/perf-hotspot | 基于 Linux perf、ARM SPE、PMU 事件和 DDRC/L3C 计数器进行 CPU 热点、缓存、指令级流水线和带宽分析。 | 廖思睿 | 廖思睿 |
+| 7 | perf-topdown | skills/perf-topdown | 联合 devkit Top-Down 与 perf 数据进行性能瓶颈交叉验证，定位程序未达到理论峰值的原因。 | 廖思睿 | 廖思睿 |
+| 8 | dev-container-manager | skills/dev-container-manager | 管理远程 Linux 服务器上的 Docker 开发容器，支持资源探测、NUMA 感知 CPU 分配、SSH 密钥生成和容器生命周期管理。 | 廖思睿 | 廖思睿 |
 
 ---
 

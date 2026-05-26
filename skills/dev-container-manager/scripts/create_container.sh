@@ -8,6 +8,7 @@
 #   HOST_PORT       — e.g. 2222
 #   USERNAME        — username for naming committed image
 #   PUBKEY          — SSH public key string (ed25519)
+#   INSTALL_TOOLS   — if "true", install dev tools (gcc, g++, python3, git, vim, etc.)
 # Usage:
 #   ssh <host> 'VAR1=val1 VAR2=val2 ... bash -s' < create_container.sh
 
@@ -21,8 +22,13 @@ for var in CONTAINER_NAME IMAGE CPUSET_CPUS MEMORY HOST_PORT USERNAME PUBKEY; do
     fi
 done
 
-echo "=== Step 1: Pull image: $IMAGE ==="
-docker pull "$IMAGE"
+echo "=== Step 1: Check image: $IMAGE ==="
+if docker image inspect "$IMAGE" >/dev/null 2>&1; then
+    echo "Image $IMAGE already exists locally, skip pull."
+else
+    echo "Image not found locally, pulling..."
+    docker pull "$IMAGE"
+fi
 
 # Clean up any previous failed attempt
 docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
@@ -51,35 +57,50 @@ if ! docker ps --filter "name=$CONTAINER_NAME" --format '{{.Names}}' | grep -q "
     exit 1
 fi
 
-echo "=== Step 4: Detect package manager and install tools ==="
-# Detect OS type in container
+echo "=== Step 4: Check and install required packages ==="
 OS_TYPE=$(docker exec "$CONTAINER_NAME" sh -c 'cat /etc/os-release 2>/dev/null | grep "^ID=" | cut -d= -f2 | tr -d "\""' 2>/dev/null || echo "unknown")
 echo "Detected OS: $OS_TYPE"
 
-case "$OS_TYPE" in
-    openeuler|openEuler|centos|fedora|rhel|anolis)
-        echo "Using dnf/yum..."
-        docker exec "$CONTAINER_NAME" dnf install -y openssh-server 2>&1 | tail -3
-        docker exec "$CONTAINER_NAME" dnf install -y \
-            hostname vim git curl wget gcc gcc-c++ make cmake \
-            python3 python3-devel 2>&1 | tail -5
-        # Try to install golang (may fail on some older repos, that's OK)
-        docker exec "$CONTAINER_NAME" dnf install -y golang 2>&1 | tail -3 || echo "golang not available in repo, skipping"
-        ;;
-    ubuntu|debian)
-        echo "Using apt-get..."
-        docker exec "$CONTAINER_NAME" apt-get update 2>&1 | tail -3
-        docker exec "$CONTAINER_NAME" apt-get install -y openssh-server 2>&1 | tail -3
-        docker exec "$CONTAINER_NAME" apt-get install -y \
-            hostname vim git curl wget gcc g++ make cmake \
-            python3 python3-dev golang 2>&1 | tail -5
-        ;;
-    *)
-        echo "Unknown OS, trying dnf then apt-get..."
-        docker exec "$CONTAINER_NAME" sh -c 'command -v dnf && dnf install -y openssh-server hostname vim git curl wget gcc gcc-c++ make cmake python3 python3-devel || \
-            (apt-get update && apt-get install -y openssh-server hostname vim git curl wget gcc g++ make cmake python3 python3-dev)' 2>&1 | tail -10
-        ;;
-esac
+# Check if sshd already exists in the container
+HAS_SSHD=$(docker exec "$CONTAINER_NAME" sh -c 'command -v sshd 2>/dev/null || echo ""')
+if [ -n "$HAS_SSHD" ]; then
+    echo "sshd already exists ($HAS_SSHD), skip openssh-server install."
+else
+    echo "sshd not found, installing openssh-server..."
+    case "$OS_TYPE" in
+        openeuler|openEuler|centos|fedora|rhel|anolis)
+            docker exec "$CONTAINER_NAME" dnf install -y openssh-server 2>&1 | tail -3 ;;
+        ubuntu|debian)
+            docker exec "$CONTAINER_NAME" apt-get update 2>&1 | tail -3
+            docker exec "$CONTAINER_NAME" apt-get install -y openssh-server 2>&1 | tail -3 ;;
+        *)
+            docker exec "$CONTAINER_NAME" sh -c 'command -v dnf && dnf install -y openssh-server || (apt-get update && apt-get install -y openssh-server)' 2>&1 | tail -5 ;;
+    esac
+fi
+
+if [ "${INSTALL_TOOLS:-false}" = "true" ]; then
+    echo "=== Step 4b: Check and install dev tools ==="
+    TOOLS_MISSING=""
+    for tool in gcc make cmake python3 git vim; do
+        if ! docker exec "$CONTAINER_NAME" sh -c "command -v $tool 2>/dev/null" >/dev/null 2>&1; then
+            TOOLS_MISSING="$TOOLS_MISSING $tool"
+        fi
+    done
+    if [ -z "$TOOLS_MISSING" ]; then
+        echo "All dev tools already present, skip install."
+    else
+        echo "Missing tools:$TOOLS_MISSING, installing..."
+        case "$OS_TYPE" in
+            openeuler|openEuler|centos|fedora|rhel|anolis)
+                docker exec "$CONTAINER_NAME" dnf install -y hostname vim git curl wget gcc gcc-c++ make cmake python3 python3-devel 2>&1 | tail -5
+                docker exec "$CONTAINER_NAME" dnf install -y golang 2>&1 | tail -3 || echo "golang not available in repo, skipping" ;;
+            ubuntu|debian)
+                docker exec "$CONTAINER_NAME" apt-get install -y hostname vim git curl wget gcc g++ make cmake python3 python3-dev golang 2>&1 | tail -5 ;;
+            *)
+                docker exec "$CONTAINER_NAME" sh -c 'command -v dnf && dnf install -y hostname vim git curl wget gcc gcc-c++ make cmake python3 python3-devel || (apt-get update && apt-get install -y hostname vim git curl wget gcc g++ make cmake python3 python3-dev)' 2>&1 | tail -10 ;;
+        esac
+    fi
+fi
 
 echo "=== Step 5: Generate SSH host keys ==="
 docker exec "$CONTAINER_NAME" ssh-keygen -A 2>&1

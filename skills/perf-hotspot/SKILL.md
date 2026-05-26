@@ -1,6 +1,6 @@
 ---
 name: perf-hotspot
-description: Comprehensive CPU performance analysis using Linux perf and ARM SPE. Covers: quick pipeline health check (perf stat), function/instruction hotspot (perf record/report/annotate), targeted PMU event sampling (L1D refill, branch mispredict, etc.), multi-level cache profiling, ARM SPE instruction-level pipeline analysis (per-instruction latency, cache source, TLB, load-to-use stall), HiSilicon DDRC/L3C bandwidth monitoring, and cross-validation with devkit top-down. Use this skill whenever the user mentions perf, hotspot analysis, instruction profiling, SPE, PMU events, cache profiling, or CPU performance diagnosis.
+description: Comprehensive CPU performance analysis using Linux perf and ARM SPE. Covers, quick pipeline health check (perf stat), function/instruction hotspot (perf record/report/annotate), targeted PMU event sampling (L1D refill, branch mispredict, etc.), multi-level cache profiling, ARM SPE instruction-level pipeline analysis (per-instruction latency, cache source, TLB, load-to-use stall), HiSilicon DDRC/L3C bandwidth monitoring, and cross-validation with devkit top-down. Use this skill whenever the user mentions perf, hotspot analysis, instruction profiling, SPE, PMU events, cache profiling, or CPU performance diagnosis.
 ---
 
 # CPU 性能分析（Perf / SPE / PMU）
