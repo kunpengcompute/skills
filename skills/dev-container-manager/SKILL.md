@@ -8,8 +8,8 @@ description: >-
   gigs of memory on IP", "check my dev containers", "list containers on
   server", "show resources on the remote box", "delete my dev container". This
   skill handles the full lifecycle: resource detection, NUMA-aware CPU
-  allocation, SSH key generation, container creation with OpenEuler, and
-  multi-user coexistence on shared servers. Trigger even if the user does not
+  allocation, authentication configuration (password, key, or both), container
+  creation with OpenEuler, and multi-user coexistence on shared servers. Trigger even if the user does not
   say "container" explicitly but describes allocating isolated CPU/memory on a
   remote Linux machine for development work.
 ---
@@ -26,9 +26,12 @@ servers with NUMA-aware resource allocation and multi-user support.
   users never conflict.
 - **NUMA-aware**: Consecutive CPU cores are always allocated from a single
   NUMA node to avoid cross-socket latency.
-- **Key-based SSH only**: Password authentication is disabled. Each container
-  gets a fresh ed25519 key pair; the private key stays in the current project
-  directory.
+- **User-chosen authentication**: Before creating a container, always ask the
+  user to choose one of three SSH authentication modes: password-only,
+  key-only, or password+key. Never assume a default — the choice must be
+  explicit. For key-only and password+key modes, generate a fresh ed25519 key
+  pair; the private key stays in the current project directory. For
+  password-only mode, no key pair is generated.
 - **Verify before create**: Always check remote resources first. If the
   server cannot satisfy the request, tell the user immediately with specifics
   (how many cores free, how much memory available, which NUMA nodes are
@@ -46,13 +49,36 @@ From the user's natural-language request, extract:
 | `user` | `root` | SSH user for the remote host |
 | `cores` | `16` | Must be consecutive, same NUMA node |
 | `memory` | `32g` | In GiB |
-| `image` | `openeuler/openeuler:24.03-lts-sp3` | Any Docker image |
+| `image` | **must ask user** | List available images on server first, then let user choose; default `openeuler/openeuler:24.03-lts-sp3` if they accept |
 | `username` | derived from local `$USER` or `whoami` | Used for container naming |
 | `ssh_port` | auto-assigned from 2222 upward | Host port mapped to container:22 |
+| `auth_method` | **must ask user** | One of: `password`, `key`, `both` (password+key) |
+| `install_tools` | `false` | Whether to pre-install gcc, g++, python3, git, vim, make, cmake, golang |
 
 If any critical parameter is missing, ask the user. For obvious defaults
-(cores, memory, image), assume the default and mention it in passing; only
+(cores, memory), assume the default and mention it in passing; only
 stop to ask if the user's request is genuinely ambiguous.
+
+**image is never defaulted.** The agent MUST list available images on the
+server and ask the user to choose. Present the image list alongside auth_method
+and install_tools questions.
+
+**IMPORTANT — auth_method is never defaulted.** The user MUST explicitly
+choose the authentication method. After gathering all other parameters and
+presenting the plan summary, ask:
+
+> 容器 SSH 登录方式选择：
+> 1. 仅密码登录 — 设置 root 密码，无需密钥文件
+> 2. 仅密钥登录 — 生成 ed25519 密钥对，禁用密码
+> 3. 密码 + 密钥同时启用
+
+After the user chooses, also ask:
+
+> 是否需要预装开发工具 (gcc, g++, python3, git, vim, make, cmake, golang)？
+
+If the user already expressed a preference (e.g. "使用密码登录" or "生成密钥"),
+do not re-ask — use the expressed preference. If the user mentioned
+password, also ask what root password to use.
 
 ### Step 2: SSH connection precheck
 
@@ -109,7 +135,7 @@ ssh <user>@<server> 'bash -s' < <skill-path>/scripts/env_precheck.sh
 
 This outputs JSON with two sections:
 
-#### 2a: Docker Hub accessibility
+#### 3a: Docker Hub accessibility
 
 The script tests connectivity to `registry-1.docker.io`, `hub.docker.com`,
 and `index.docker.io`. Two outcomes:
@@ -151,7 +177,7 @@ with open(\"/etc/docker/daemon.json\", \"w\") as f:
 " && systemctl restart docker'
 ```
 
-#### 2b: Disk space check
+#### 3b: Disk space check
 
 The script checks free space on three paths:
 
@@ -213,7 +239,7 @@ If all three paths have >128 GB free, report "磁盘空间充足" and proceed.
 Run the bundled resource check script on the remote server. This collects:
 CPU topology (NUMA nodes, core lists, free cores per node), total/free
 memory, existing dev containers and their resource allocations, Docker
-status, and used ports.
+status, used ports, and available Docker images.
 
 The script is at `scripts/check_resources.sh`. Read it, then pipe it to the
 remote host:
@@ -222,7 +248,13 @@ remote host:
 ssh <user>@<server> 'bash -s' < <skill-path>/scripts/check_resources.sh
 ```
 
-Present a summary table to the user:
+Also list available Docker images on the server:
+
+```bash
+ssh <user>@<server> 'docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}\t{{.CreatedAt}}"'
+```
+
+Present summary tables to the user:
 
 ```
 === 服务器资源: <server> ===
@@ -239,6 +271,29 @@ NUMA 节点:
 | dev_container_xxx | xxx | 0-15 | 32G | 2222 | running |
 ...
 ```
+
+Also present available Docker images:
+
+```
+=== 服务器已有镜像 ===
+| 镜像 | 标签 | 大小 | 创建时间 |
+|------|------|------|----------|
+| openeuler/openeuler | 24.03-lts-sp3 | 204MB | 2026-05-15 |
+| dev-openeuler | latest | 1.3GB | 2026-05-12 |
+```
+
+After presenting the resource summary and image list, ask the user to choose:
+
+> 请选择要使用的镜像：
+> 1. openeuler/openeuler:24.03-lts-sp3（默认）
+> 2. dev-openeuler:latest
+> 3. ubuntu:22.04
+> 4. 其他（请指定）
+
+If the user specified an image in their initial request, use that and skip
+the question. If only one image is available on the server, note it and use
+it unless the user specifies otherwise. The default `openeuler/openeuler:24.03-lts-sp3`
+is always listed as an option — Docker will pull it if not present locally.
 
 If resources are insufficient, report the shortfall clearly and stop. Example:
 "该服务器仅有 8 个空闲核心（分布于不同 NUMA 节点），无法分配连续 16 核。"
@@ -267,15 +322,30 @@ Pick resources that don't conflict with existing containers.
   and not bound on the host wins.
 - Command: `for port in $(seq 2222 2300); do ss -tlnp | grep -q ":$port " || { echo $port; break; }; done`
 
-### Step 6: Generate SSH key pair
+### Step 6: Handle authentication
 
-Generate locally in the current project directory:
+**If auth_method is `password`**:
+- Skip key generation entirely.
+- When running the creation script, omit `PUBKEY` and pass `ROOT_PASSWORD`
+  and `AUTH_MODE=password`.
+- The SSH config must use `PasswordAuthentication yes`, `PermitRootLogin yes`.
 
-```bash
-ssh-keygen -t ed25519 -f dev_container_<username>_key -N "" -C "dev_container_<username>@<server>"
-```
+**If auth_method is `key`**:
+- Generate ed25519 key pair locally:
+  ```bash
+  ssh-keygen -t ed25519 -f dev_container_<username>_key -N "" -C "dev_container_<username>@<server>"
+  ```
+- When running the creation script, pass `PUBKEY` with the public key content
+  and `AUTH_MODE=key`.
+- The SSH config must use `PasswordAuthentication no`,
+  `PermitRootLogin prohibit-password`.
 
-Store the key filename for the connection info output.
+**If auth_method is `both`**:
+- Generate ed25519 key pair locally (same as key-only).
+- Also ask the user for a root password.
+- When running the creation script, pass both `PUBKEY` and `ROOT_PASSWORD`
+  with `AUTH_MODE=both`.
+- The SSH config must use `PasswordAuthentication yes`, `PermitRootLogin yes`.
 
 ### Step 7: Create the container
 
@@ -290,37 +360,67 @@ customize and pipe it to the remote host. The script handles:
 5. Optionally installing dev tools (gcc, g++, python3, git, vim, make, cmake,
    golang) — controlled by `INSTALL_TOOLS=true`. Default is to skip dev tools.
    Each tool is checked individually and only installed if missing.
-6. Injecting the public key into `/root/.ssh/authorized_keys`
-7. Configuring sshd (key-only auth, no passwords)
-8. Committing the container as `dev-<username>:latest` with an entrypoint
+6. Setting root password (if `AUTH_MODE` is `password` or `both`)
+7. Injecting the public key into `/root/.ssh/authorized_keys` (if `AUTH_MODE`
+   is `key` or `both`, and `PUBKEY` is provided)
+8. Configuring sshd according to `AUTH_MODE`:
+   - `password`: `PasswordAuthentication yes`, `PermitRootLogin yes`
+   - `key`: `PasswordAuthentication no`, `PermitRootLogin prohibit-password`
+   - `both`: `PasswordAuthentication yes`, `PermitRootLogin yes`
+9. Committing the container as `dev-<username>:latest` with an entrypoint
    script that auto-starts sshd
-9. Recreating the container from the committed image
+10. Recreating the container from the committed image
 
 The script accepts environment variables for all parameters:
 
 ```bash
+# For key-only:
 ssh <user>@<server> 'CONTAINER_NAME=dev_container_<username> \
   IMAGE=openeuler/openeuler:24.03-lts-sp3 \
   CPUSET_CPUS=48-63 \
   MEMORY=32g \
   HOST_PORT=2222 \
   USERNAME=<username> \
+  AUTH_MODE=key \
   PUBKEY="<public-key-content>" \
   INSTALL_TOOLS=true \
   bash -s' < <skill-path>/scripts/create_container.sh
+
+# For password-only:
+ssh <user>@<server> 'CONTAINER_NAME=dev_container_<username> \
+  IMAGE=openeuler/openeuler:24.03-lts-sp3 \
+  CPUSET_CPUS=48-63 \
+  MEMORY=32g \
+  HOST_PORT=2222 \
+  USERNAME=<username> \
+  AUTH_MODE=password \
+  ROOT_PASSWORD=<password> \
+  bash -s' < <skill-path>/scripts/create_container.sh
+
+# For both:
+ssh <user>@<server> 'CONTAINER_NAME=dev_container_<username> \
+  IMAGE=openeuler/openeuler:24.03-lts-sp3 \
+  CPUSET_CPUS=48-63 \
+  MEMORY=32g \
+  HOST_PORT=2222 \
+  USERNAME=<username> \
+  AUTH_MODE=both \
+  PUBKEY="<public-key-content>" \
+  ROOT_PASSWORD=<password> \
+  bash -s' < <skill-path>/scripts/create_container.sh
 ```
 
-After container creation, ask the user if they want to install dev tools.
-If yes, run the script again with `INSTALL_TOOLS=true` (it will skip steps
-that are already done and only install missing tools).
+Dev tools are installed inline during container creation if
+`INSTALL_TOOLS=true` was set — no separate post-creation step is needed.
 
 If the image is openeuler-based, installs via `dnf`.
 If ubuntu/debian-based, via `apt-get`. Auto-detected.
 
 ### Step 8: Report connection info
 
-After creation succeeds, present the user with a clear summary:
+After creation succeeds, present the user with a clear summary.
 
+**For key-only:**
 ```
 === 开发容器已就绪 ===
 SSH 连接: ssh -i "$(pwd)/dev_container_<username>_key" -p <port> root@<server>
@@ -329,6 +429,30 @@ CPU:      <range> (独占 <N> 核, NUMA node <X>)
 内存:     <M>G
 镜像:     <image>
 私钥:     ./dev_container_<username>_key
+```
+
+**For password-only:**
+```
+=== 开发容器已就绪 ===
+SSH 连接: ssh -p <port> root@<server>
+密码:     <password>
+主机名:   dev-container-<username>
+CPU:      <range> (独占 <N> 核, NUMA node <X>)
+内存:     <M>G
+镜像:     <image>
+```
+
+**For both:**
+```
+=== 开发容器已就绪 ===
+SSH 连接 (密钥): ssh -i "$(pwd)/dev_container_<username>_key" -p <port> root@<server>
+SSH 连接 (密码): ssh -p <port> root@<server>
+密码:            <password>
+主机名:          dev-container-<username>
+CPU:             <range> (独占 <N> 核, NUMA node <X>)
+内存:            <M>G
+镜像:            <image>
+私钥:            ./dev_container_<username>_key
 ```
 
 Also mention: "可使用 '查看开发容器' 随时查询容器状态。"
@@ -427,6 +551,7 @@ warn the user.
 | Container exits immediately | `/sbin/init` missing | Use `tail -f /dev/null` or `sleep infinity` as init; commit with entrypoint script |
 | sshd not running after restart | No auto-start mechanism | Commit container with entrypoint script that launches sshd before the idle loop |
 | `Permission denied (publickey)` | Public key not in authorized_keys or wrong key | Verify key injection via `docker exec`; check `~/.ssh/authorized_keys` permissions (600) and `~/.ssh/` (700) |
+| `Permission denied (password)` | Password not set or PAM misconfigured | Verify via `docker exec <c> sh -c 'echo "root:<pw>" \| chpasswd'`; ensure `/etc/pam.d/sshd` exists and `/etc/ssh/sshd_config.d/dev.conf` has `PasswordAuthentication yes` and `UsePAM yes` |
 | `Cannot allocate memory` | Memory limit too low for dnf/apt | Install tools before setting hard memory limit, or temporarily raise limit during setup |
 | Port already in use | Another container or host service | Pick next available port |
 | NUMA node has gaps in free cores | Other containers fragmenting the node | Try allocating from a less-used NUMA node, or report to user |
@@ -445,9 +570,12 @@ variables first.
   info and existing container allocations. Outputs JSON for parsing.
 - `create_container.sh` — Runs on remote host. Expects env vars:
   `CONTAINER_NAME`, `IMAGE`, `CPUSET_CPUS`, `MEMORY`, `HOST_PORT`,
-  `USERNAME`, `PUBKEY`. Optional: `INSTALL_TOOLS=true` to install dev tools.
+  `USERNAME`, `AUTH_MODE` (one of `password`, `key`, `both`). Depending on
+  `AUTH_MODE`: `PUBKEY` (for `key`/`both`), `ROOT_PASSWORD` (for
+  `password`/`both`). Optional: `INSTALL_TOOLS=true` to install dev tools.
   Handles the full create-install-configure-commit pipeline. Skips image pull,
   sshd install, and dev tool install if already present.
 - `list_containers.sh` — Runs on remote host. Outputs formatted table of all
-  `dev_container_*` containers with resource details and SSH connection
-  commands.
+  `dev_container_*` containers with resource details, auth mode, and
+  auth-aware SSH connection commands. Detects auth mode from Docker labels
+  (preferred) or by inspecting sshd config inside the container (fallback).
