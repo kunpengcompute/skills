@@ -13,15 +13,41 @@ if ! command -v docker &>/dev/null; then
     exit 1
 fi
 
+HOST_IP=$(hostname -I | awk '{print $1}')
+
+# Detect auth mode: try Docker label first, fall back to sshd -T
+detect_auth() {
+    local cname="$1"
+    # Try label (set by create_container.sh)
+    local label_auth
+    label_auth=$(docker inspect -f '{{ index .Config.Labels "dev.auth_mode" }}' "$cname" 2>/dev/null || echo "")
+    if [ -n "$label_auth" ] && [ "$label_auth" != "<no value>" ]; then
+        echo "$label_auth"
+        return
+    fi
+    # Fallback: check sshd config inside container
+    if docker exec "$cname" sh -c 'sshd -T 2>/dev/null | grep "^passwordauthentication" | awk "{print \$2}"' 2>/dev/null | grep -q "yes"; then
+        local pubkey
+        pubkey=$(docker exec "$cname" sh -c 'sshd -T 2>/dev/null | grep "^pubkeyauthentication" | awk "{print \$2}"' 2>/dev/null || echo "no")
+        if [ "$pubkey" = "yes" ]; then
+            echo "both"
+        else
+            echo "password"
+        fi
+    else
+        echo "key"
+    fi
+}
+
 CONTAINERS=$(docker ps -a --filter "name=dev_container_" --format '{{.Names}}' 2>/dev/null || true)
 
 if [ -z "$CONTAINERS" ]; then
     echo "暂无开发容器"
     echo
 else
-    printf "%-30s %-12s %-12s %-10s %-8s %-12s %-10s\n" \
-        "容器名" "用户" "CPU范围" "内存" "端口" "状态" "镜像"
-    printf "%s\n" "--------------------------------------------------------------------------------------------------------"
+    printf "%-30s %-12s %-12s %-10s %-8s %-10s %-12s %-20s\n" \
+        "容器名" "用户" "CPU范围" "内存" "端口" "认证" "状态" "镜像"
+    printf "%s\n" "-----------------------------------------------------------------------------------------------------------------------------------------"
 
     for cname in $CONTAINERS; do
         STATUS=$(docker inspect -f '{{.State.Status}}' "$cname" 2>/dev/null || echo "unknown")
@@ -37,9 +63,17 @@ else
         PORTS=$(docker port "$cname" 2>/dev/null | awk -F' -> ' '{print $1}' | tr '\n' ',' | sed 's/,$//')
         [ -z "$PORTS" ] && PORTS="-"
         USERNAME=$(echo "$cname" | sed 's/^dev_container_//')
+        AUTH=$(detect_auth "$cname")
 
-        printf "%-30s %-12s %-12s %-10s %-8s %-12s %-10s\n" \
-            "$cname" "$USERNAME" "$CPUSET" "$MEM_STR" "$PORTS" "$STATUS" "$IMAGE"
+        AUTH_LABEL="未知"
+        case "$AUTH" in
+            password) AUTH_LABEL="密码" ;;
+            key) AUTH_LABEL="密钥" ;;
+            both) AUTH_LABEL="密码+密钥" ;;
+        esac
+
+        printf "%-30s %-12s %-12s %-10s %-8s %-10s %-12s %-20s\n" \
+            "$cname" "$USERNAME" "$CPUSET" "$MEM_STR" "$PORTS" "$AUTH_LABEL" "$STATUS" "$IMAGE"
     done
 fi
 
@@ -54,6 +88,8 @@ for cname in $CONTAINERS; do
     PORTS=$(docker port "$cname" 2>/dev/null | awk -F' -> ' '{print $1}' | head -1)
     USERNAME=$(echo "$cname" | sed 's/^dev_container_//')
     CREATED=$(docker inspect -f '{{.Created}}' "$cname" 2>/dev/null | cut -d'T' -f1,2 | cut -d'.' -f1)
+    AUTH=$(detect_auth "$cname")
+    SSH_PORT="${PORTS%%:*}"
 
     echo "--- $cname ---"
     echo "  用户:     $USERNAME"
@@ -61,8 +97,20 @@ for cname in $CONTAINERS; do
     echo "  CPU范围:  $CPUSET"
     echo "  内存限制: ${MEM_GiB}G"
     echo "  SSH端口:  $PORTS"
+    echo "  认证方式: $AUTH"
     echo "  创建时间: $CREATED"
-    echo "  SSH连接:  ssh -i dev_container_${USERNAME}_key -p ${PORTS%%:*} root@$(hostname -I | awk '{print $1}')"
+
+    case "$AUTH" in
+        password)
+            echo "  SSH连接:  ssh -p $SSH_PORT root@$HOST_IP" ;;
+        key)
+            echo "  SSH连接:  ssh -i dev_container_${USERNAME}_key -p $SSH_PORT root@$HOST_IP" ;;
+        both)
+            echo "  SSH连接(密码): ssh -p $SSH_PORT root@$HOST_IP"
+            echo "  SSH连接(密钥): ssh -i dev_container_${USERNAME}_key -p $SSH_PORT root@$HOST_IP" ;;
+        *)
+            echo "  SSH连接:  ssh -p $SSH_PORT root@$HOST_IP" ;;
+    esac
     echo
 done
 
@@ -75,7 +123,6 @@ for cname in $CONTAINERS; do
     STATUS=$(docker inspect -f '{{.State.Status}}' "$cname" 2>/dev/null || echo "unknown")
     if [ "$STATUS" = "running" ]; then
         CPUSET=$(docker inspect -f '{{.HostConfig.CpusetCpus}}' "$cname" 2>/dev/null || echo "0")
-        # Handle ranges like "48-63" or single cores
         if echo "$CPUSET" | grep -q '-'; then
             START=$(echo "$CPUSET" | cut -d'-' -f1)
             END=$(echo "$CPUSET" | cut -d'-' -f2)

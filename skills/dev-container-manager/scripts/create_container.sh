@@ -7,20 +7,46 @@
 #   MEMORY          — e.g. 32g
 #   HOST_PORT       — e.g. 2222
 #   USERNAME        — username for naming committed image
-#   PUBKEY          — SSH public key string (ed25519)
+#   AUTH_MODE       — one of: password, key, both
+#   ROOT_PASSWORD   — required if AUTH_MODE is password or both
+#   PUBKEY          — required if AUTH_MODE is key or both
 #   INSTALL_TOOLS   — if "true", install dev tools (gcc, g++, python3, git, vim, etc.)
 # Usage:
 #   ssh <host> 'VAR1=val1 VAR2=val2 ... bash -s' < create_container.sh
 
 set -e
 
-# Validate required env vars
-for var in CONTAINER_NAME IMAGE CPUSET_CPUS MEMORY HOST_PORT USERNAME PUBKEY; do
+# Validate common required env vars
+for var in CONTAINER_NAME IMAGE CPUSET_CPUS MEMORY HOST_PORT USERNAME AUTH_MODE; do
     if [ -z "${!var}" ]; then
         echo "ERROR: $var is not set"
         exit 1
     fi
 done
+
+# Validate auth-mode-specific vars
+case "$AUTH_MODE" in
+    password)
+        if [ -z "$ROOT_PASSWORD" ]; then
+            echo "ERROR: ROOT_PASSWORD is required when AUTH_MODE=password"
+            exit 1
+        fi ;;
+    key)
+        if [ -z "$PUBKEY" ]; then
+            echo "ERROR: PUBKEY is required when AUTH_MODE=key"
+            exit 1
+        fi ;;
+    both)
+        if [ -z "$ROOT_PASSWORD" ] || [ -z "$PUBKEY" ]; then
+            echo "ERROR: ROOT_PASSWORD and PUBKEY are required when AUTH_MODE=both"
+            exit 1
+        fi ;;
+    *)
+        echo "ERROR: AUTH_MODE must be one of: password, key, both"
+        exit 1 ;;
+esac
+
+echo "=== Auth mode: $AUTH_MODE ==="
 
 echo "=== Step 1: Check image: $IMAGE ==="
 if docker image inspect "$IMAGE" >/dev/null 2>&1; then
@@ -42,6 +68,8 @@ docker create \
     --cpus "$(echo "$CPUSET_CPUS" | awk -F'-' '{print $2-$1+1}')" \
     --hostname "$CONTAINER_NAME" \
     --restart=unless-stopped \
+    --label "dev.user=$USERNAME" \
+    --label "dev.auth_mode=$AUTH_MODE" \
     -p "$HOST_PORT":22 \
     "$IMAGE" \
     sh -c 'while true; do sleep 3600; done'
@@ -105,22 +133,63 @@ fi
 echo "=== Step 5: Generate SSH host keys ==="
 docker exec "$CONTAINER_NAME" ssh-keygen -A 2>&1
 
-echo "=== Step 6: Configure SSH ==="
-# Inject public key
-docker exec "$CONTAINER_NAME" mkdir -p /root/.ssh
-echo "$PUBKEY" | docker exec -i "$CONTAINER_NAME" sh -c 'cat > /root/.ssh/authorized_keys'
-docker exec "$CONTAINER_NAME" chmod 700 /root/.ssh
-docker exec "$CONTAINER_NAME" chmod 600 /root/.ssh/authorized_keys
+echo "=== Step 6: Configure authentication ($AUTH_MODE) ==="
 
-# Configure sshd
+# --- Set root password (password / both modes) ---
+if [ "$AUTH_MODE" = "password" ] || [ "$AUTH_MODE" = "both" ]; then
+    echo "Setting root password..."
+    echo "$ROOT_PASSWORD" | docker exec -i "$CONTAINER_NAME" sh -c 'echo "root:$(cat)" | chpasswd' 2>&1 || true
+    # Ensure passwd is available for PAM password auth
+    docker exec "$CONTAINER_NAME" sh -c 'command -v passwd || (command -v dnf && dnf install -y passwd || apt-get install -y passwd)' 2>&1 | tail -3 || true
+    echo "Root password set."
+fi
+
+# --- Inject public key (key / both modes) ---
+if [ "$AUTH_MODE" = "key" ] || [ "$AUTH_MODE" = "both" ]; then
+    echo "Injecting SSH public key..."
+    docker exec "$CONTAINER_NAME" mkdir -p /root/.ssh
+    echo "$PUBKEY" | docker exec -i "$CONTAINER_NAME" sh -c 'cat > /root/.ssh/authorized_keys'
+    docker exec "$CONTAINER_NAME" chmod 700 /root/.ssh
+    docker exec "$CONTAINER_NAME" chmod 600 /root/.ssh/authorized_keys
+    echo "Public key injected."
+fi
+
+# --- Configure sshd according to AUTH_MODE ---
 docker exec "$CONTAINER_NAME" mkdir -p /etc/ssh/sshd_config.d
-docker exec "$CONTAINER_NAME" bash -c "cat > /etc/ssh/sshd_config.d/dev.conf" << 'SSHCONF'
+case "$AUTH_MODE" in
+    password)
+        docker exec "$CONTAINER_NAME" bash -c "cat > /etc/ssh/sshd_config.d/dev.conf" << 'SSHCONF'
+Port 22
+PermitRootLogin yes
+PubkeyAuthentication no
+PasswordAuthentication yes
+UsePAM yes
+SSHCONF
+        ;;
+    key)
+        docker exec "$CONTAINER_NAME" bash -c "cat > /etc/ssh/sshd_config.d/dev.conf" << 'SSHCONF'
 Port 22
 PermitRootLogin prohibit-password
 PubkeyAuthentication yes
 PasswordAuthentication no
 UsePAM no
 SSHCONF
+        ;;
+    both)
+        docker exec "$CONTAINER_NAME" bash -c "cat > /etc/ssh/sshd_config.d/dev.conf" << 'SSHCONF'
+Port 22
+PermitRootLogin yes
+PubkeyAuthentication yes
+PasswordAuthentication yes
+UsePAM yes
+SSHCONF
+        ;;
+esac
+
+# Ensure PAM sshd config exists for password auth (needed on minimal images)
+if [ "$AUTH_MODE" = "password" ] || [ "$AUTH_MODE" = "both" ]; then
+    docker exec "$CONTAINER_NAME" sh -c 'test -f /etc/pam.d/sshd || echo -e "auth required pam_permit.so\naccount required pam_permit.so" > /etc/pam.d/sshd' 2>/dev/null || true
+fi
 
 # Restart sshd to pick up config
 docker exec "$CONTAINER_NAME" pkill sshd 2>/dev/null || true
@@ -131,9 +200,6 @@ echo "=== Step 7: Commit container to preserve state ==="
 docker commit "$CONTAINER_NAME" "dev-${USERNAME}:latest"
 
 echo "=== Step 8: Recreate with auto-start entrypoint ==="
-
-# Create entrypoint script path inside the committed image
-ENTRYPOINT_SCRIPT="/entrypoint.sh"
 
 # Stop and remove old container
 docker stop "$CONTAINER_NAME" 2>/dev/null || true
@@ -148,6 +214,8 @@ docker create \
     --cpus "$(echo "$CPUSET_CPUS" | awk -F'-' '{print $2-$1+1}')" \
     --hostname "$CONTAINER_NAME" \
     --restart=unless-stopped \
+    --label "dev.user=$USERNAME" \
+    --label "dev.auth_mode=$AUTH_MODE" \
     -p "$HOST_PORT":22 \
     "dev-${USERNAME}:latest" \
     sh -c '/usr/sbin/sshd; while true; do sleep 3600; done'
