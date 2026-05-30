@@ -111,6 +111,7 @@ npx skills add https://gitcode.com/boostkit/skills.git --all
 | 7 | perf-topdown | skills/perf-topdown | 联合 devkit Top-Down 与 perf 数据进行性能瓶颈交叉验证，定位程序未达到理论峰值的原因。 | 廖思睿 | 廖思睿 |
 | 8 | dev-container-manager | skills/dev-container-manager | 管理远程 Linux 服务器上的 Docker 开发容器，支持资源探测、NUMA 感知 CPU 分配、SSH 密钥生成和容器生命周期管理。 | 廖思睿 | 廖思睿 |
 | 9 | knowledge-base | skills/knowledge-base | 知识卡片管理：创建/搜索/索引/列出，将问答与分析归档为结构化知识卡片并维护可检索索引。设计文档见 docs/knowledge-base-design.md。 | 黄晓权 | 黄晓权 |
+| 10 | prompt-archive | skills/prompt-archive | 提取并归档本机 Claude Code 历史会话中「用户真人发出的 prompt」，生成每会话 md + 主索引 + 质量分析报告（启发式 5 维打分 + Top/Bottom 排行 + 可选 LLM 深析），支持增量更新。设计文档见 docs/prompt-archive-design.md。 | 黄晓权 | 黄晓权 |
 
 ---
 
