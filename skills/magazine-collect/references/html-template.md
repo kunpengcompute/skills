@@ -7,6 +7,7 @@
 1. **邮件客户端兼容优先**：所有样式**内联**（`style="..."` 在每个元素上），不要用 `<style>` 块或外部 stylesheet——Gmail/Outlook/Foxmail 多数会剥离 `<style>` 标签。
 2. **不依赖外部资源**：不引用 CDN、外部图片、Web Font、iframe——很多企业邮件防火墙会拦截外链，部分客户端默认禁用远程图片。
 3. **保留全部内容**：HTML 是 md 的 1:1 视觉化呈现，不省略事件、不压缩三段式正文。
+   - 排版顺序与月刊 md 一致：海报 → 目录 → **本期全局脉络（汇总各板块脉络的高亮卡片）** → 各板块核心事件 → 全月覆盖速览；各板块小节内不再单独放脉络卡片。
 4. **可独立打开**：单文件 HTML（无 .css/.js 配套），既能用浏览器双击打开，也能作为邮件正文嵌入。
 5. **CJK 友好**：字体栈优先列 `-apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif`，覆盖 macOS / iOS / Windows / Linux 主流场景。
 6. **响应式但务实**：最大宽度 800px 居中；窄屏（< 600px）也能勉强读，但不做完整响应式（邮件场景不是 web app）。
@@ -39,6 +40,7 @@
   <div style="padding:24px 32px 0;border-bottom:1px solid #f0f1f3;">
     <div style="font-size:13px;color:#6b7280;letter-spacing:0.1em;margin-bottom:12px;">目录 · TABLE OF CONTENTS</div>
     <ol style="margin:0 0 20px;padding-left:20px;font-size:14px;color:#374151;">
+      <li style="margin-bottom:6px;"><a href="#overview" style="color:#1e3a8a;text-decoration:none;">本期全局脉络</a></li>
       <li style="margin-bottom:6px;"><a href="#sec-1" style="color:#1e3a8a;text-decoration:none;">一、{板块 1 名}</a></li>
       <li style="margin-bottom:6px;"><a href="#sec-2" style="color:#1e3a8a;text-decoration:none;">二、{板块 2 名}</a>
         <ul style="margin:4px 0;padding-left:18px;font-size:13px;color:#6b7280;">
@@ -50,20 +52,26 @@
     </ol>
   </div>
 
-  <!-- ③ 正文：各板块 -->
+  <!-- ②.5 本期全局脉络：汇总所有板块脉络，紧跟目录、领先正文 -->
+  <div id="overview" style="padding:20px 32px;">
+    <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:18px 22px;">
+      <div style="font-size:16px;color:#8a6d1a;font-weight:700;margin-bottom:4px;">🎯 本期全局脉络</div>
+      <div style="font-size:12px;color:#a08a4a;margin-bottom:12px;">先纵览各板块脉络建立全局认识，核心事件见下文对应小节</div>
+      <div style="font-size:14px;color:#444;font-weight:700;margin:10px 0 4px;">一、{板块 1 名}</div>
+      <ul style="margin:0 0 6px;padding-left:20px;font-size:13px;color:#444;line-height:1.8;"><li>{脉络 bullet}</li></ul>
+      <div style="font-size:14px;color:#444;font-weight:700;margin:10px 0 4px;">二、{多叶子节名}</div>
+      <ul style="margin:0;padding-left:20px;font-size:13px;color:#444;line-height:1.8;">
+        <li><strong>{子板块 A}</strong>：{脉络要点}</li>
+        <li><strong>{子板块 B}</strong>：{脉络要点}</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ③ 正文：各板块（仅核心事件，脉络已在上方全局脉络区） -->
   <div style="padding:24px 32px;">
 
     <!-- 单叶子节示例 -->
     <h2 id="sec-1" style="font-size:22px;color:#1e3a8a;margin:32px 0 16px;padding-bottom:8px;border-bottom:2px solid #1e3a8a;">一、{板块 1 名}</h2>
-
-    <!-- 核心脉络 callout 卡片 -->
-    <div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:16px 20px;margin:16px 0;border-radius:0 6px 6px 0;">
-      <div style="font-size:13px;color:#1e40af;font-weight:600;letter-spacing:0.05em;margin-bottom:8px;">▸ 核心脉络</div>
-      <ul style="margin:0;padding-left:20px;font-size:14px;color:#1f2937;">
-        <li style="margin-bottom:6px;">{bullet 1}</li>
-        <li style="margin-bottom:6px;">{bullet 2}</li>
-      </ul>
-    </div>
 
     <!-- 核心事件 -->
     <div style="font-size:14px;color:#6b7280;margin:24px 0 8px;letter-spacing:0.05em;">▸ 核心事件（按日期降序）</div>
@@ -87,7 +95,7 @@
     <h2 id="sec-2" style="font-size:22px;color:#1e3a8a;margin:32px 0 16px;padding-bottom:8px;border-bottom:2px solid #1e3a8a;">二、{多叶子节名}</h2>
 
     <h3 id="sec-2-1" style="font-size:18px;color:#1e40af;margin:24px 0 12px;padding-left:12px;border-left:4px solid #3b82f6;">2.1 {子板块 A}</h3>
-    <!-- 同上：核心脉络 callout + 事件卡片 -->
+    <!-- 同上：仅事件卡片（该子板块脉络已在顶部「本期全局脉络」区） -->
 
     <h3 id="sec-2-2" style="font-size:18px;color:#1e40af;margin:24px 0 12px;padding-left:12px;border-left:4px solid #3b82f6;">2.2 {子板块 B}</h3>
     <!-- 同上 -->
@@ -149,12 +157,17 @@
 
 注意：`box-shadow` 在部分老 Outlook 不支持但会优雅降级（变成无阴影），不影响内容。`overflow:hidden` 让 banner 的圆角不溢出。
 
-### 核心脉络 callout
+### 本期全局脉络 callout（汇总各板块脉络，紧跟目录、领先正文）
+
+整张卡片放在目录之后、所有板块正文之前；内部按 section 分组——单叶子节用小标题 + bullet，多叶子节用 `<strong>子板块名</strong>：…` 收敛成概览。各板块小节里**不再单独放脉络 callout**。
 
 ```html
-<div style="background:#eff6ff;border-left:4px solid #3b82f6;padding:16px 20px;margin:16px 0;border-radius:0 6px 6px 0;">
-  <div style="font-size:13px;color:#1e40af;font-weight:600;">▸ 核心脉络</div>
-  <ul>...</ul>
+<div id="overview" style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:18px 22px;margin:16px 0;">
+  <div style="font-size:16px;color:#8a6d1a;font-weight:700;">🎯 本期全局脉络</div>
+  <div style="font-size:14px;color:#444;font-weight:700;margin-top:10px;">一、{板块名}</div>
+  <ul style="font-size:13px;"><li>{脉络 bullet}</li></ul>
+  <div style="font-size:14px;color:#444;font-weight:700;margin-top:10px;">三、{多叶子节名}</div>
+  <ul style="font-size:13px;"><li><strong>{子板块}</strong>：{脉络要点}</li></ul>
 </div>
 ```
 
@@ -181,8 +194,9 @@
 `mode=html` **只产月刊级 HTML**（单板块阅读用 md 即可，不为单板块单独出 HTML）。月刊 HTML 必含：
 
 - 海报 banner 标题 = `{领域}动态`（如"编译技术动态"、"推荐系统动态"）
-- **目录必需**（K 个叶子板块）
-- 末尾"全月覆盖速览"表格
+- **目录必需**（首项为「本期全局脉络」，其后 K 个叶子板块）
+- **「本期全局脉络」callout 必需**：紧跟目录、领先所有正文，汇总各板块核心脉络（单叶子节小标题 + bullet，多叶子节子板块收敛）；各板块小节内不再单独放脉络 callout
+- 末尾「全月覆盖速览」表格
 - 多叶子节子板块用 `N.M` 序号 h3 标题（与 md 月刊一致）
 - 1:1 内嵌月刊 md 的所有事件（含完整三段式 + URL）
 
@@ -195,6 +209,7 @@ LLM 直接转换，不写脚本。常见 md 元素对应 HTML：
 | Markdown | HTML 模式 |
 |---|---|
 | `# 标题` | `<h1 style="...">` |
+| `## 本期全局脉络` | 顶部 `<div id="overview">` 高亮 callout（在目录之后、正文之前） |
 | `## 一、…` | `<h2 id="sec-N" style="...">` |
 | `### 3.1 …` | `<h3 id="sec-3-1" style="...">` |
 | `#### YYYY-MM-DD ｜ 标题` | 事件卡片 `<div>...</div>`，标题用 `<h3>` |
