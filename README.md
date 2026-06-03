@@ -1,10 +1,10 @@
-# Boostkit Skills 代码仓设计文档（鲲鹏基础加速域）
+# Boostkit Skills 代码仓设计文档
 
 ## 项目概述
 
 ### 项目定位
 
-鲲鹏基础加速域 Agent Skills：将鲲鹏软件栈专家经验与能力模块化、可复用，使能用户与开发者。
+鲲鹏BoostKit Agent Skills：将鲲鹏软件栈专家经验与能力模块化、可复用，使能用户与开发者。
 
 在 AI 智能体（Agent）上下文中，技能（Skills）是为扩展 Agent 能力而设计的模块化功能单元。每个 Skill 封装了指令、元数据及可选资源（如可执行脚本、模板），当 Agent（比如 OpenClaw、OpenCode 等）通过意图识别匹配到相关上下文时，自动调用对应 Skill。
 
@@ -21,7 +21,7 @@
 
 核心优势：
 
-- 赋予 Agent 专精能力：为鲲鹏基础加速域任务定制稳定工作流，实现领域泛化。
+- 赋予 Agent 专精能力：为鲲鹏BoostKit任务定制稳定工作流，实现领域泛化。
 - 减少重复工作：一次创建，多平台复用（OpenClaw、OpenCode、CodeBuddy、TRAE 等）。
 - 组合能力：通过整合多个 Skills 构建复杂工作流程。
 
@@ -31,93 +31,12 @@
 - 场景化应用开发者
 - 内外部合作伙伴
 
-### SKILL 命名规范
-
-- `SKILL.md` 文件必须严格命名为 `SKILL.md`（区分大小写），不接受任何变体（如 `SKILL.MD`、`skill.md`）。
-- SKILL 文件夹命名必须使用**烤串命名法（kebab-case）**，例如 `e2e-auto-optimize`。
-  - ✅ 正确示例：`e2e-auto-optimize`
-  - ❌ 错误示例：`E2E auto Optimize`（含空格）
-  - ❌ 错误示例：`e2e_auto_optimize`（使用下划线）
-  - ❌ 错误示例：`E2EAutoOptimize`（使用大写）
 
 ### 存放规则
 
-- 将SKILL放到`skills`目录下
-- 将SKILL的设计文档放到`docs`目录下
-- 将SKILL的测试代码放到`tests`目录下
+- BoostKit Skills 目录下有各个SIG组织独立的目录，每个目录下有该SIG组织的Skills。
+- 总目录下有各SIG组织的Skills文件，对应规范要求按各自SIG组织的规范执行。
 
-## 项目架构设计
-
-### 整体架构
-
-```text
-agent-skills/
-├── skills/                         # 技能核心目录（扁平化结构）
-│   ├── skill-name-1/               # 技能 1
-│   ├── skill-name-2/               # 技能 2
-│   └── skill-name-n/               # 技能 N
-├── docs/                           # 文档目录
-│   ├── design/                     # 设计文档
-│   ├── guides/                     # 开发指南
-│   └── examples/                   # 示例文档
-├── tests/                          # 测试目录
-│   ├── test-data/                  # 测试数据集
-│   ├── validators/                 # 验证脚本
-│   └── expected-results/           # 预期结果
-├── scripts/                        # 脚本工具
-│   └── validate_skills.py          # 技能验证脚本
-├── template/                       # 技能模板
-│   └── SKILL.md                    # 标准技能模板
-├── README.md                       # 项目说明文档
-├── AGENTS.md                       # AI 编程助手指南
-└── .gitignore                      # Git 忽略配置
-```
-
-## 安装 Skills
-
-建议使用 [Skills 管理工具](https://github.com/vercel-labs/skills)（`npx skills`）安装 Skills。以下为常用命令示例：
-
-```bash
-# 列出 kunpeng/agent-skills 仓库中包含的所有 Skills
-npx skills add https://gitcode.com/boostkit/skills.git --list
-
-# 安装指定 Skill
-npx skills add https://gitcode.com/boostkit/skills.git --skill e2e-auto-optimize
-
-# 将 Skills 安装到特定 Agent（例如 trae 和 opencode）
-npx skills add https://gitcode.com/boostkit/skills.git -a trae -a opencode
-
-# 非交互式安装（适合 CI/CD 场景）
-npx skills add https://gitcode.com/boostkit/skills.git --skill e2e-auto-optimize -g -a opencode -y
-
-# 安装仓库中的所有 Skills
-npx skills add https://gitcode.com/boostkit/skills.git --all
-```
-`常用agent：trae, opencode, claude-code, codex`
-
-
-## SKILL 索引目录
-
-> 当前索引以单表方式维护，便于统一检索与扩展。
-
-| 序号 | Skill 名称 | 相对路径 | 简述 | 开发人员 | 维护人员 |
-|---|---|---|---|---|---|
-| 1 | e2e-auto-optimize | skills/e2e-auto-optimize | 针对加速库端到端的性能优化 skills。 | 王绍宇 | 王绍宇 |
-| 2 | gitcode-review | skills/gitcode-review | 对gitcode PR进行AI检视的skill。 | 王绍宇 | 王绍宇 |
-| 3 | magazine-collect | skills/magazine-collect | 按月刊收集规则（如 compiler-magazine-collect.md）对技术领域近 N 月动态做 LLM-first 汇总，产出单板块中文 digest md；`mode=magazine` 全量跑并拼接月刊；`mode=html` 产月刊 HTML 视觉版；`mode=eml` 把 HTML 打包为可双击直发的 `.eml` 邮件版。 | 黄晓权 | 黄晓权 |
-| 4 | paper-digest | skills/paper-digest | 按"方向 + 时间窗"自动收集内存库/编译器优化方向论文：4 阶段流水线（动态发现 + 粗分类 + 4 段摘要 + Jinja 渲染），支持 Claude subagent 或 DeepSeek API 作为 LLM 后端。 | 黄晓权 | 黄晓权 |
-| 5 | devkit-perf | skills/devkit-perf | 使用 `devkit tuner top-down` 采集并解读 CPU 微架构 Top-Down 指标，识别 Frontend/Core/Memory 等流水线瓶颈。 | 廖思睿 | 廖思睿 |
-| 6 | perf-hotspot | skills/perf-hotspot | 基于 Linux perf、ARM SPE、PMU 事件和 DDRC/L3C 计数器进行 CPU 热点、缓存、指令级流水线和带宽分析。 | 廖思睿 | 廖思睿 |
-| 7 | perf-topdown | skills/perf-topdown | 联合 devkit Top-Down 与 perf 数据进行性能瓶颈交叉验证，定位程序未达到理论峰值的原因。 | 廖思睿 | 廖思睿 |
-| 8 | dev-container-manager | skills/dev-container-manager | 管理远程 Linux 服务器上的 Docker 开发容器，支持资源探测、NUMA 感知 CPU 分配、SSH 密钥生成和容器生命周期管理。 | 廖思睿 | 廖思睿 |
-| 9 | knowledge-base | skills/knowledge-base | 知识卡片管理：创建/搜索/索引/列出，将问答与分析归档为结构化知识卡片并维护可检索索引。设计文档见 docs/knowledge-base-design.md。 | 黄晓权 | 黄晓权 |
-| 10 | prompt-archive | skills/prompt-archive | 提取并归档本机 Claude Code 历史会话中「用户真人发出的 prompt」，生成每会话 md + 主索引 + 质量分析报告（启发式 5 维打分 + Top/Bottom 排行 + 可选 LLM 深析），支持增量更新。设计文档见 docs/prompt-archive-design.md。 | 黄晓权 | 黄晓权 |
-| 11 | remote-vm-builder | skills/remote-vm-builder | 在远程 SSH 可达的 libvirt/KVM Linux 宿主机上创建和管理 Linux cloud-image VM，支持内置 OS catalog、自定义镜像 URL、宿主机能力查询和 VM 生命周期管理。 | 于智洹 | 于智洹 |
-| 12 | upstream-tech-radar | skills/upstream-tech-radar | 以 Arm 高性能开发工程师视角分析主上游仓库的 open PR、近 30 天 merged PR、活跃 issue 以及 peer repo 动态，输出固定格式的月度技术雷达，并给出对本地项目的短期、中期和观察项建议。设计文档见 docs/upstream-tech-radar-design.md。 | 叶韦宏 | 叶韦宏 |
-
-
-
----
 
 ## 免责声明
 
