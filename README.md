@@ -113,6 +113,9 @@ npx skills add https://gitcode.com/boostkit/skills.git --all
 | 9 | knowledge-base | skills/knowledge-base | 知识卡片管理：创建/搜索/索引/列出，将问答与分析归档为结构化知识卡片并维护可检索索引。设计文档见 docs/knowledge-base-design.md。 | 黄晓权 | 黄晓权 |
 | 10 | prompt-archive | skills/prompt-archive | 提取并归档本机 Claude Code 历史会话中「用户真人发出的 prompt」，生成每会话 md + 主索引 + 质量分析报告（启发式 5 维打分 + Top/Bottom 排行 + 可选 LLM 深析），支持增量更新。设计文档见 docs/prompt-archive-design.md。 | 黄晓权 | 黄晓权 |
 | 11 | remote-vm-builder | skills/remote-vm-builder | 在远程 SSH 可达的 libvirt/KVM Linux 宿主机上创建和管理 Linux cloud-image VM，支持内置 OS catalog、自定义镜像 URL、宿主机能力查询和 VM 生命周期管理。 | 于智洹 | 于智洹 |
+| 12 | upstream-tech-radar | skills/upstream-tech-radar | 以 Arm 高性能开发工程师视角分析主上游仓库的 open PR、近 30 天 merged PR、活跃 issue 以及 peer repo 动态，输出固定格式的月度技术雷达，并给出对本地项目的短期、中期和观察项建议。设计文档见 docs/upstream-tech-radar-design.md。 | 叶韦宏 | 叶韦宏 |
+
+
 
 ---
 
