@@ -112,6 +112,7 @@ npx skills add https://gitcode.com/boostkit/skills.git --all
 | 8 | dev-container-manager | skills/dev-container-manager | 管理远程 Linux 服务器上的 Docker 开发容器，支持资源探测、NUMA 感知 CPU 分配、SSH 密钥生成和容器生命周期管理。 | 廖思睿 | 廖思睿 |
 | 9 | knowledge-base | skills/knowledge-base | 知识卡片管理：创建/搜索/索引/列出，将问答与分析归档为结构化知识卡片并维护可检索索引。设计文档见 docs/knowledge-base-design.md。 | 黄晓权 | 黄晓权 |
 | 10 | prompt-archive | skills/prompt-archive | 提取并归档本机 Claude Code 历史会话中「用户真人发出的 prompt」，生成每会话 md + 主索引 + 质量分析报告（启发式 5 维打分 + Top/Bottom 排行 + 可选 LLM 深析），支持增量更新。设计文档见 docs/prompt-archive-design.md。 | 黄晓权 | 黄晓权 |
+| 11 | remote-vm-builder | skills/remote-vm-builder | 在远程 SSH 可达的 libvirt/KVM Linux 宿主机上创建和管理 Linux cloud-image VM，支持内置 OS catalog、自定义镜像 URL、宿主机能力查询和 VM 生命周期管理。 | 于智洹 | 于智洹 |
 
 ---
 
