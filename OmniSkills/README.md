@@ -109,7 +109,19 @@ Spark 表达式测试 SQL 生成技能 —— 读取包含 Spark 函数信息的
 
 ### 六、OMNI 算子端到端测试全流程
 
-> 这五个技能按"设计 → 用例 → 脚本 → 执行 → 报告"流水线依次串联，可独立使用，也可组成完整测试流水线。
+> 这六个技能按"检视 → 设计 → 用例 → 脚本 → 执行 → 报告"流水线依次串联，可独立使用，也可组成完整测试流水线。
+
+#### spark-omnioperator-test-devdoc-review
+
+算子开发设计文档检视技能 —— 审查 Spark OMNI 优化算子的开发设计文档，验证其是否为下游 agent 自动生成测试设计提供足够的信息密度。
+
+- 9 个功能完整性维度（F1~F9）：测试约束、数据类型覆盖、开关配置、观测算子、设计流程、SQL 用例示例、兼容性、行为可测试性、SQL 示例多样性
+- 逐项给出"通过/不通过"判定 + 文档依据 + 修复建议
+- 强制规则：F1~F9 任一 ❌ → 最终结论不通过
+- 输出报告与原设计文档放在同一目录，便于开发、测试人员直接修改
+- 推荐作为 `test-design-generator` 的前置步骤
+
+详见 [spark-omnioperator-test-devdoc-review/README.md](spark-omnioperator-test-devdoc-review/README.md)
 
 #### spark-omnioperator-test-design-generator
 
@@ -213,6 +225,12 @@ OmniSkill/
 │   ├── examples/
 │   └── references/
 │
+├── spark-omnioperator-test-devdoc-review/   ← 算子开发设计文档检视
+│   ├── SKILL.md
+│   ├── README.md
+│   ├── references/
+│   └── template/
+│
 ├── spark-omnioperator-test-design-generator/   ← 算子测试设计文档生成
 │   ├── SKILL.md
 │   ├── README.md
@@ -248,12 +266,15 @@ OmniSkill/
 
 ## 端到端测试流水线（OMNI 算子）
 
-`spark-omnioperator-test-*` 系列五个技能按"设计 → 用例 → 脚本 → 执行 → 报告"形成完整流水线：
+`spark-omnioperator-test-*` 系列六个技能按"检视 → 设计 → 用例 → 脚本 → 执行 → 报告"形成完整流水线：
 
 ```
 [详设文档]
    │
    ▼
+test-devdoc-review    ──► {Operator}_Design_Document_Review_Report.md
+                                    │  (检视通过后再进入下一步)
+                                    ▼
 test-design-generator ──► {Operator}_Test_Design_Document.md
                                     │
                                     ▼
