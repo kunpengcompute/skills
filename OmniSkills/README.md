@@ -286,6 +286,12 @@ Phase 2b (Metrics 提取)     ─► extract-spark-ui-metrics
 Phase 5 (正确性) / Phase 6 (性能)  ─► run_e2e_sql / run_spark_test_operator
 ```
 
+### 目标用户
+
+- 鲲鹏社区开发者
+- 场景化应用开发者
+- 内外部合作伙伴
+
 ## 免责声明
 
 1. 本仓库中的 Agent Skills 内容、代码、配置及示例仅供技术参考和学习使用，不代表其适用于任何生产环境、商业场景或关键业务系统。
