@@ -115,6 +115,7 @@ npx skills add https://gitcode.com/boostkit/skills.git --all
 | 11 | remote-vm-builder | skills/remote-vm-builder | 在远程 SSH 可达的 libvirt/KVM Linux 宿主机上创建和管理 Linux cloud-image VM，支持内置 OS catalog、自定义镜像 URL、宿主机能力查询和 VM 生命周期管理。 | 于智洹 | 于智洹 |
 | 12 | upstream-tech-radar | skills/upstream-tech-radar | 以 Arm 高性能开发工程师视角分析主上游仓库的 open PR、近 30 天 merged PR、活跃 issue 以及 peer repo 动态，输出固定格式的月度技术雷达，并给出对本地项目的短期、中期和观察项建议。设计文档见 docs/upstream-tech-radar-design.md。 | 叶韦宏 | 叶韦宏 |
 | 13 | arm64-arch-reference | skills/arm64-arch-reference | 查阅 ARM A-profile（AArch64/A64）架构特性（FEAT_*）与 A64 指令的权威速查表，覆盖特性引入版本、可选/强制状态、指令汇编模板/编码（Encoding）及「指令受哪个特性门控」，数据源自 ARM 官方机器可读规范（AARCHMRS，对应手册 DDI 0487 M.b / Armv9.6）。设计文档见 docs/arm64-arch-reference/DESIGN.md。 | 王如锋 | 王如锋 |
+| 14 | feature-design-doc | skills/feature-design-doc | 阅读某性能/优化特性的源码,产出图文并茂、可交付的设计文档(Markdown + Word/docx),支持中文/英文/中英双语;固化章节骨架、结构图 SVG 矢量 + 行为图 PlantUML、严格 docx 排版(中文宋体五号/英文 Times New Roman 五号/全黑无斜体/单倍行距段后6磅)、英文版图内文字也译英、图片与文档同级同次提交。 | 黄晓权 | 黄晓权 |
 
 
 
