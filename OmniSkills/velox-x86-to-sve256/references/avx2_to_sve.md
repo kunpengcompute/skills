@@ -1,0 +1,900 @@
+# AVX2 → SVE Migration Reference
+> **生成日期**: 2026-05-15  
+> **用途**: x86 AVX2（256-bit）到 ARM SVE/SVE2 迁移对照表
+
+---
+
+## 概述
+
+本文档提供 x86 AVX2 intrinsics 到 ARM SVE/SVE2 的迁移映射。AVX2 是 256-bit 固定长度 SIMD，而 SVE 是可伸缩向量扩展（128-2048 bit）。在迁移时，SVE 的向量长度（VL）可配置为 256-bit 以匹配 AVX2 的处理宽度。
+
+**关键差异**:
+- AVX2 使用固定 256-bit 寄存器（`__m256i`, `__m256`, `__m256d`）
+- SVE 使用可变长度寄存器（`svint32_t`, `svfloat32_t` 等），需要谓词寄存器（`svbool_t`）控制活跃元素
+- SVE 指令通常需要额外的谓词参数（`pg`）来指定活跃元素
+- SVE 使用 `svptrue_b32()` 等函数创建全活跃谓词
+
+---
+
+## 目录
+
+- [Arithmetic](#arithmetic)
+- [Compare](#compare)
+- [Convert](#convert)
+- [Load](#load)
+- [Logical](#logical)
+- [Miscellaneous](#miscellaneous)
+- [Probability/Statistics](#probabilitystatistics)
+- [Shift](#shift)
+- [Special Math Functions](#special-math-functions)
+- [Store](#store)
+- [Swizzle](#swizzle)
+
+---
+
+## Arithmetic
+
+### `_mm256_add_epi16`
+
+**AVX2 签名**: `__m256i _mm256_add_epi16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPADDW`
+
+**描述**: Add packed 16-bit integers in "a" and "b", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svadd[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svadd[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svadd[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svadd[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svadd[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_add_epi16
+// SVE: svadd[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_add_epi32`
+
+**AVX2 签名**: `__m256i _mm256_add_epi32(__m256i a, __m256i b)`
+
+**x86 指令**: `VPADDD`
+
+**描述**: Add packed 32-bit integers in "a" and "b", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint32_t svadd[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svadd[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svadd[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svadd[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svadd[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_add_epi32
+// SVE: svadd[_u32]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_add_epi64`
+
+**AVX2 签名**: `__m256i _mm256_add_epi64(__m256i a, __m256i b)`
+
+**x86 指令**: `VPADDQ`
+
+**描述**: Add packed 64-bit integers in "a" and "b", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint64_t svadd[_u64]_m(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+2. `svuint64_t svadd[_u64]_x(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+3. `svuint64_t svadd[_u64]_z(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+4. `svuint64_t svadd[_n_u64]_m(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+5. `svuint64_t svadd[_n_u64]_x(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_add_epi64
+// SVE: svadd[_u64]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_add_epi8`
+
+**AVX2 签名**: `__m256i _mm256_add_epi8(__m256i a, __m256i b)`
+
+**x86 指令**: `VPADDB`
+
+**描述**: Add packed 8-bit integers in "a" and "b", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint8_t svadd[_u8]_m(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+2. `svuint8_t svadd[_u8]_x(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+3. `svuint8_t svadd[_u8]_z(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+4. `svuint8_t svadd[_n_u8]_m(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+5. `svuint8_t svadd[_n_u8]_x(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_add_epi8
+// SVE: svadd[_u8]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_adds_epi16`
+
+**AVX2 签名**: `__m256i _mm256_adds_epi16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPADDSW`
+
+**描述**: Add packed 16-bit integers in "a" and "b" using saturation, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svadd[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svadd[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svadd[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svadd[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svadd[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_adds_epi16
+// SVE: svadd[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_adds_epi8`
+
+**AVX2 签名**: `__m256i _mm256_adds_epi8(__m256i a, __m256i b)`
+
+**x86 指令**: `VPADDSB`
+
+**描述**: Add packed 8-bit integers in "a" and "b" using saturation, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint8_t svadd[_u8]_m(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+2. `svuint8_t svadd[_u8]_x(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+3. `svuint8_t svadd[_u8]_z(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+4. `svuint8_t svadd[_n_u8]_m(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+5. `svuint8_t svadd[_n_u8]_x(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_adds_epi8
+// SVE: svadd[_u8]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_adds_epu16`
+
+**AVX2 签名**: `__m256i _mm256_adds_epu16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPADDUSW`
+
+**描述**: Add packed unsigned 16-bit integers in "a" and "b" using saturation, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svadd[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svadd[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svadd[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svadd[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svadd[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_adds_epu16
+// SVE: svadd[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_adds_epu8`
+
+**AVX2 签名**: `__m256i _mm256_adds_epu8(__m256i a, __m256i b)`
+
+**x86 指令**: `VPADDUSB`
+
+**描述**: Add packed unsigned 8-bit integers in "a" and "b" using saturation, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint8_t svadd[_u8]_m(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+2. `svuint8_t svadd[_u8]_x(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+3. `svuint8_t svadd[_u8]_z(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+4. `svuint8_t svadd[_n_u8]_m(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+5. `svuint8_t svadd[_n_u8]_x(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_adds_epu8
+// SVE: svadd[_u8]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_hadd_epi16`
+
+**AVX2 签名**: `__m256i _mm256_hadd_epi16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPHADDW`
+
+**描述**: Horizontally add adjacent pairs of 16-bit integers in "a" and "b", and pack the signed 16-bit results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svadd[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svadd[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svadd[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svadd[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svadd[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_hadd_epi16
+// SVE: svadd[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_hadd_epi32`
+
+**AVX2 签名**: `__m256i _mm256_hadd_epi32(__m256i a, __m256i b)`
+
+**x86 指令**: `VPHADDD`
+
+**描述**: Horizontally add adjacent pairs of 32-bit integers in "a" and "b", and pack the signed 32-bit results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint32_t svadd[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svadd[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svadd[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svadd[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svadd[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_hadd_epi32
+// SVE: svadd[_u32]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_hadds_epi16`
+
+**AVX2 签名**: `__m256i _mm256_hadds_epi16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPHADDSW`
+
+**描述**: Horizontally add adjacent pairs of signed 16-bit integers in "a" and "b" using saturation, and pack the signed 16-bit results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svadd[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svadd[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svadd[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svadd[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svadd[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_hadds_epi16
+// SVE: svadd[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_hsub_epi16`
+
+**AVX2 签名**: `__m256i _mm256_hsub_epi16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPHSUBW`
+
+**描述**: Horizontally subtract adjacent pairs of 16-bit integers in "a" and "b", and pack the signed 16-bit results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svhsub[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE2
+2. `svuint16_t svhsub[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE2
+3. `svuint16_t svhsub[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE2
+4. `svuint16_t svhsub[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE2
+5. `svuint16_t svhsub[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE2
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_hsub_epi16
+// SVE: svhsub[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_hsub_epi32`
+
+**AVX2 签名**: `__m256i _mm256_hsub_epi32(__m256i a, __m256i b)`
+
+**x86 指令**: `VPHSUBD`
+
+**描述**: Horizontally subtract adjacent pairs of 32-bit integers in "a" and "b", and pack the signed 32-bit results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint32_t svhsub[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE2
+2. `svuint32_t svhsub[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE2
+3. `svuint32_t svhsub[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE2
+4. `svuint32_t svhsub[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE2
+5. `svuint32_t svhsub[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE2
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_hsub_epi32
+// SVE: svhsub[_u32]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_hsubs_epi16`
+
+**AVX2 签名**: `__m256i _mm256_hsubs_epi16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPHSUBSW`
+
+**描述**: Horizontally subtract adjacent pairs of signed 16-bit integers in "a" and "b" using saturation, and pack the signed 16-bit results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svhsub[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE2
+2. `svuint16_t svhsub[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE2
+3. `svuint16_t svhsub[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE2
+4. `svuint16_t svhsub[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE2
+5. `svuint16_t svhsub[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE2
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_hsubs_epi16
+// SVE: svhsub[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_madd_epi16`
+
+**AVX2 签名**: `__m256i _mm256_madd_epi16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPMADDWD`
+
+**描述**: Multiply packed signed 16-bit integers in "a" and "b", producing intermediate signed 32-bit integers. Horizontally add adjacent pairs of intermediate 32-bit integers, and pack the results in "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm256_maddubs_epi16`
+
+**AVX2 签名**: `__m256i _mm256_maddubs_epi16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPMADDUBSW`
+
+**描述**: Vertically multiply each unsigned 8-bit integer from "a" with the corresponding signed 8-bit integer from "b", producing intermediate signed 16-bit integers. Horizontally add adjacent pairs of intermediate signed 16-bit integers, and pack the saturated results in "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm256_mul_epi32`
+
+**AVX2 签名**: `__m256i _mm256_mul_epi32(__m256i a, __m256i b)`
+
+**x86 指令**: `VPMULDQ`
+
+**描述**: Multiply the low signed 32-bit integers from each packed 64-bit element in "a" and "b", and store the signed 64-bit results in "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm256_mul_epu32`
+
+**AVX2 签名**: `__m256i _mm256_mul_epu32(__m256i a, __m256i b)`
+
+**x86 指令**: `VPMULUDQ`
+
+**描述**: Multiply the low unsigned 32-bit integers from each packed 64-bit element in "a" and "b", and store the unsigned 64-bit results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint64_t svmul[_u64]_m(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+2. `svuint64_t svmul[_u64]_x(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+3. `svuint64_t svmul[_u64]_z(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+4. `svuint64_t svmul[_n_u64]_m(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+5. `svuint64_t svmul[_n_u64]_x(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_mul_epu32
+// SVE: svmul[_u64]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_mulhi_epi16`
+
+**AVX2 签名**: `__m256i _mm256_mulhi_epi16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPMULHW`
+
+**描述**: Multiply the packed signed 16-bit integers in "a" and "b", producing intermediate 32-bit integers, and store the high 16 bits of the intermediate integers in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svmul[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svmul[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svmul[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svmul[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svmul[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_mulhi_epi16
+// SVE: svmul[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_mulhi_epu16`
+
+**AVX2 签名**: `__m256i _mm256_mulhi_epu16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPMULHUW`
+
+**描述**: Multiply the packed unsigned 16-bit integers in "a" and "b", producing intermediate 32-bit integers, and store the high 16 bits of the intermediate integers in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svmul[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svmul[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svmul[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svmul[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svmul[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_mulhi_epu16
+// SVE: svmul[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_mulhrs_epi16`
+
+**AVX2 签名**: `__m256i _mm256_mulhrs_epi16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPMULHRSW`
+
+**描述**: Multiply packed signed 16-bit integers in "a" and "b", producing intermediate signed 32-bit integers. Truncate each intermediate integer to the 18 most significant bits, round by adding 1, and store bits [16:1] to "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svadd[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svadd[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svadd[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svadd[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svadd[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_mulhrs_epi16
+// SVE: svadd[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_mullo_epi16`
+
+**AVX2 签名**: `__m256i _mm256_mullo_epi16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPMULLW`
+
+**描述**: Multiply the packed signed 16-bit integers in "a" and "b", producing intermediate 32-bit integers, and store the low 16 bits of the intermediate integers in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svmul[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svmul[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svmul[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svmul[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svmul[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_mullo_epi16
+// SVE: svmul[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_mullo_epi32`
+
+**AVX2 签名**: `__m256i _mm256_mullo_epi32(__m256i a, __m256i b)`
+
+**x86 指令**: `VPMULLD`
+
+**描述**: Multiply the packed signed 32-bit integers in "a" and "b", producing intermediate 64-bit integers, and store the low 32 bits of the intermediate integers in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint32_t svmul[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svmul[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svmul[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svmul[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svmul[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_mullo_epi32
+// SVE: svmul[_u32]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_sad_epu8`
+
+**AVX2 签名**: `__m256i _mm256_sad_epu8(__m256i a, __m256i b)`
+
+**x86 指令**: `VPSADBW`
+
+**描述**: Compute the absolute differences of packed unsigned 8-bit integers in "a" and "b", then horizontally sum each consecutive 8 differences to produce four unsigned 16-bit integers, and pack these unsigned 16-bit integers in the low 16 bits of 64-bit elements in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svand[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svand[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svand[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svand[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svand[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_sad_epu8
+// SVE: svand[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_sign_epi16`
+
+**AVX2 签名**: `__m256i _mm256_sign_epi16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPSIGNW`
+
+**描述**: Negate packed signed 16-bit integers in "a" when the corresponding signed 16-bit integer in "b" is negative, and store the results in "dst". Element in "dst" are zeroed out when the corresponding element in "b" is zero.
+
+**SVE 对应指令**:
+
+1. `svuint16_t svand[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svand[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svand[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svand[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svand[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_sign_epi16
+// SVE: svand[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_sign_epi32`
+
+**AVX2 签名**: `__m256i _mm256_sign_epi32(__m256i a, __m256i b)`
+
+**x86 指令**: `VPSIGND`
+
+**描述**: Negate packed signed 32-bit integers in "a" when the corresponding signed 32-bit integer in "b" is negative, and store the results in "dst". Element in "dst" are zeroed out when the corresponding element in "b" is zero.
+
+**SVE 对应指令**:
+
+1. `svuint32_t svand[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svand[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svand[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svand[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svand[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_sign_epi32
+// SVE: svand[_u32]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_sign_epi8`
+
+**AVX2 签名**: `__m256i _mm256_sign_epi8(__m256i a, __m256i b)`
+
+**x86 指令**: `VPSIGNB`
+
+**描述**: Negate packed signed 8-bit integers in "a" when the corresponding signed 8-bit integer in "b" is negative, and store the results in "dst". Element in "dst" are zeroed out when the corresponding element in "b" is zero.
+
+**SVE 对应指令**:
+
+1. `svuint8_t svand[_u8]_m(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+2. `svuint8_t svand[_u8]_x(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+3. `svuint8_t svand[_u8]_z(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+4. `svuint8_t svand[_n_u8]_m(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+5. `svuint8_t svand[_n_u8]_x(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_sign_epi8
+// SVE: svand[_u8]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_sub_epi16`
+
+**AVX2 签名**: `__m256i _mm256_sub_epi16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPSUBW`
+
+**描述**: Subtract packed 16-bit integers in "b" from packed 16-bit integers in "a", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svhsub[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE2
+2. `svuint16_t svhsub[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE2
+3. `svuint16_t svhsub[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE2
+4. `svuint16_t svhsub[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE2
+5. `svuint16_t svhsub[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE2
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_sub_epi16
+// SVE: svhsub[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_sub_epi32`
+
+**AVX2 签名**: `__m256i _mm256_sub_epi32(__m256i a, __m256i b)`
+
+**x86 指令**: `VPSUBD`
+
+**描述**: Subtract packed 32-bit integers in "b" from packed 32-bit integers in "a", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint32_t svhsub[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE2
+2. `svuint32_t svhsub[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE2
+3. `svuint32_t svhsub[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE2
+4. `svuint32_t svhsub[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE2
+5. `svuint32_t svhsub[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE2
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_sub_epi32
+// SVE: svhsub[_u32]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_sub_epi64`
+
+**AVX2 签名**: `__m256i _mm256_sub_epi64(__m256i a, __m256i b)`
+
+**x86 指令**: `VPSUBQ`
+
+**描述**: Subtract packed 64-bit integers in "b" from packed 64-bit integers in "a", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint64_t svhsub[_u64]_m(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE2
+2. `svuint64_t svhsub[_u64]_x(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE2
+3. `svuint64_t svhsub[_u64]_z(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE2
+4. `svuint64_t svhsub[_n_u64]_m(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE2
+5. `svuint64_t svhsub[_n_u64]_x(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE2
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_sub_epi64
+// SVE: svhsub[_u64]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_sub_epi8`
+
+**AVX2 签名**: `__m256i _mm256_sub_epi8(__m256i a, __m256i b)`
+
+**x86 指令**: `VPSUBB`
+
+**描述**: Subtract packed 8-bit integers in "b" from packed 8-bit integers in "a", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint8_t svhsub[_u8]_m(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE2
+2. `svuint8_t svhsub[_u8]_x(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE2
+3. `svuint8_t svhsub[_u8]_z(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE2
+4. `svuint8_t svhsub[_n_u8]_m(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE2
+5. `svuint8_t svhsub[_n_u8]_x(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE2
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_sub_epi8
+// SVE: svhsub[_u8]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_subs_epi16`
+
+**AVX2 签名**: `__m256i _mm256_subs_epi16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPSUBSW`
+
+**描述**: Subtract packed signed 16-bit integers in "b" from packed 16-bit integers in "a" using saturation, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svhsub[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE2
+2. `svuint16_t svhsub[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE2
+3. `svuint16_t svhsub[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE2
+4. `svuint16_t svhsub[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE2
+5. `svuint16_t svhsub[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE2
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_subs_epi16
+// SVE: svhsub[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_subs_epi8`
+
+**AVX2 签名**: `__m256i _mm256_subs_epi8(__m256i a, __m256i b)`
+
+**x86 指令**: `VPSUBSB`
+
+**描述**: Subtract packed signed 8-bit integers in "b" from packed 8-bit integers in "a" using saturation, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint8_t svhsub[_u8]_m(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE2
+2. `svuint8_t svhsub[_u8]_x(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE2
+3. `svuint8_t svhsub[_u8]_z(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE2
+4. `svuint8_t svhsub[_n_u8]_m(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE2
+5. `svuint8_t svhsub[_n_u8]_x(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE2
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_subs_epi8
+// SVE: svhsub[_u8]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_subs_epu16`
+
+**AVX2 签名**: `__m256i _mm256_subs_epu16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPSUBUSW`
+
+**描述**: Subtract packed unsigned 16-bit integers in "b" from packed unsigned 16-bit integers in "a" using saturation, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svhsub[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE2
+2. `svuint16_t svhsub[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE2
+3. `svuint16_t svhsub[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE2
+4. `svuint16_t svhsub[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE2
+5. `svuint16_t svhsub[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE2
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_subs_epu16
+// SVE: svhsub[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_subs_epu8`
+
+**AVX2 签名**: `__m256i _mm256_subs_epu8(__m256i a, __m256i b)`
+
+**x86 指令**: `VPSUBUSB`
+
+**描述**: Subtract packed unsigned 8-bit integers in "b" from packed unsigned 8-bit integers in "a" using saturation, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint8_t svhsub[_u8]_m(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE2
+2. `svuint8_t svhsub[_u8]_x(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE2
+3. `svuint8_t svhsub[_u8]_z(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE2
+4. `svuint8_t svhsub[_n_u8]_m(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE2
+5. `svuint8_t svhsub[_n_u8]_x(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE2
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_subs_epu8
+// SVE: svhsub[_u8]_m(svptrue_b8(), a, b)
+```
+
+---
+
+## Compare
+
+### `_mm256_cmpeq_epi16`
+
+**AVX2 签名**: `__m256i _mm256_cmpeq_epi16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPCMPEQW`
+
+**描述**: Compare packed 16-bit integers in "a" and "b" for equality, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svand[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svand[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svand[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svand[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svand[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_cmpeq_epi16
+// SVE: svand[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_cmpeq_epi32`
+
+**AVX2 签名**: `__m256i _mm256_cmpeq_epi32(__m256i a, __m256i b)`
+
+**x86 指令**: `VPCMPEQD`
+
+**描述**: Compare packed 32-bit integers in "a" and "b" for equality, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint32_t svand[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svand[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svand[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svand[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svand[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_cmpeq_epi32
+// SVE: svand[_u32]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_cmpeq_epi64`
+
+**AVX2 签名**: `__m256i _mm256_cmpeq_epi64(__m256i a, __m256i b)`
+
+**x86 指令**: `VPCMPEQQ`
+
+**描述**: Compare packed 64-bit integers in "a" and "b" for equality, and store the results in "dst".
+
+**SVE 对应指令**:
+
