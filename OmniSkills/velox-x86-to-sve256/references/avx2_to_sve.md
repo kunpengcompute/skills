@@ -1798,3 +1798,903 @@
 **AVX2 签名**: `__m128i _mm_i64gather_epi32(int const* base_addr, __m128i vindex, const int scale)`
 
 **x86 指令**: `VPGATHERQD`
+
+**描述**: Gather 32-bit integers from memory using 64-bit indices. 32-bit elements are loaded from addresses starting at "base_addr" and offset by each 64-bit element in "vindex" (each index is scaled by the factor in "scale"). Gathered elements are merged into "dst". "scale" should be 1, 2, 4 or 8.
+
+**SVE 对应指令**:
+
+1. `svuint32_t svadd[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svadd[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svadd[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svadd[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svadd[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm_i64gather_epi32
+// SVE: svadd[_u32]_m(svptrue_b8(), base_addr, vindex)
+```
+
+---
+
+### `_mm_i64gather_epi64`
+
+**AVX2 签名**: `__m128i _mm_i64gather_epi64(__int64 const* base_addr, __m128i vindex, const int scale)`
+
+**x86 指令**: `VPGATHERQQ`
+
+**描述**: Gather 64-bit integers from memory using 64-bit indices. 64-bit elements are loaded from addresses starting at "base_addr" and offset by each 64-bit element in "vindex" (each index is scaled by the factor in "scale"). Gathered elements are merged into "dst". "scale" should be 1, 2, 4 or 8.
+
+**SVE 对应指令**:
+
+1. `svuint64_t svadd[_u64]_m(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+2. `svuint64_t svadd[_u64]_x(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+3. `svuint64_t svadd[_u64]_z(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+4. `svuint64_t svadd[_n_u64]_m(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+5. `svuint64_t svadd[_n_u64]_x(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm_i64gather_epi64
+// SVE: svadd[_u64]_m(svptrue_b8(), base_addr, vindex)
+```
+
+---
+
+### `_mm_i64gather_pd`
+
+**AVX2 签名**: `__m128d _mm_i64gather_pd(double const* base_addr, __m128i vindex, const int scale)`
+
+**x86 指令**: `VGATHERQPD`
+
+**描述**: Gather double-precision (64-bit) floating-point elements from memory using 64-bit indices. 64-bit elements are loaded from addresses starting at "base_addr" and offset by each 64-bit element in "vindex" (each index is scaled by the factor in "scale"). Gathered elements are merged into "dst". "scale" should be 1, 2, 4 or 8.
+
+**SVE 对应指令**:
+
+1. `svfloat64_t svadd[_f64]_m(svbool_t pg, svfloat64_t op1, svfloat64_t op2)` — SME and SME2, SVE
+2. `svfloat64_t svadd[_f64]_x(svbool_t pg, svfloat64_t op1, svfloat64_t op2)` — SME and SME2, SVE
+3. `svfloat64_t svadd[_f64]_z(svbool_t pg, svfloat64_t op1, svfloat64_t op2)` — SME and SME2, SVE
+4. `svfloat64_t svadd[_n_f64]_m(svbool_t pg, svfloat64_t op1, float64_t op2)` — SME and SME2, SVE
+5. `svfloat64_t svadd[_n_f64]_x(svbool_t pg, svfloat64_t op1, float64_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm_i64gather_pd
+// SVE: svadd[_f64]_m(svptrue_b32(), base_addr, vindex)
+```
+
+---
+
+### `_mm_i64gather_ps`
+
+**AVX2 签名**: `__m128 _mm_i64gather_ps(float const* base_addr, __m128i vindex, const int scale)`
+
+**x86 指令**: `VGATHERQPS`
+
+**描述**: Gather single-precision (32-bit) floating-point elements from memory using 64-bit indices. 32-bit elements are loaded from addresses starting at "base_addr" and offset by each 64-bit element in "vindex" (each index is scaled by the factor in "scale"). Gathered elements are merged into "dst". "scale" should be 1, 2, 4 or 8.
+
+**SVE 对应指令**:
+
+1. `svfloat16_t svadd[_f16]_m(svbool_t pg, svfloat16_t op1, svfloat16_t op2)` — SME and SME2, SVE
+2. `svfloat32_t svadd[_f32]_m(svbool_t pg, svfloat32_t op1, svfloat32_t op2)` — SME and SME2, SVE
+3. `svfloat64_t svadd[_f64]_m(svbool_t pg, svfloat64_t op1, svfloat64_t op2)` — SME and SME2, SVE
+4. `svfloat16_t svadd[_f16]_x(svbool_t pg, svfloat16_t op1, svfloat16_t op2)` — SME and SME2, SVE
+5. `svfloat32_t svadd[_f32]_x(svbool_t pg, svfloat32_t op1, svfloat32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm_i64gather_ps
+// SVE: svadd[_f16]_m(svptrue_b32(), base_addr, vindex)
+```
+
+---
+
+### `_mm_mask_i32gather_epi32`
+
+**AVX2 签名**: `__m128i _mm_mask_i32gather_epi32(__m128i src, int const* base_addr, __m128i vindex, __m128i mask, const int scale)`
+
+**x86 指令**: `VPGATHERDD`
+
+**描述**: Gather 32-bit integers from memory using 32-bit indices. 32-bit elements are loaded from addresses starting at "base_addr" and offset by each 32-bit element in "vindex" (each index is scaled by the factor in "scale"). Gathered elements are merged into "dst" using "mask" (elements are copied from "src" when the highest bit is not set in the corresponding element). "scale" should be 1, 2, 4 or 8.
+
+**SVE 对应指令**:
+
+1. `svuint32_t svadd[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svadd[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svadd[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svadd[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svadd[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm_mask_i32gather_epi32
+// SVE: svadd[_u32]_m(svptrue_b8(), src, base_addr)
+```
+
+---
+
+### `_mm_mask_i32gather_epi64`
+
+**AVX2 签名**: `__m128i _mm_mask_i32gather_epi64(__m128i src, __int64 const* base_addr, __m128i vindex, __m128i mask, const int scale)`
+
+**x86 指令**: `VPGATHERDQ`
+
+**描述**: Gather 64-bit integers from memory using 32-bit indices. 64-bit elements are loaded from addresses starting at "base_addr" and offset by each 32-bit element in "vindex" (each index is scaled by the factor in "scale"). Gathered elements are merged into "dst" using "mask" (elements are copied from "src" when the highest bit is not set in the corresponding element). "scale" should be 1, 2, 4 or 8.
+
+**SVE 对应指令**:
+
+1. `svuint64_t svadd[_u64]_m(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+2. `svuint64_t svadd[_u64]_x(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+3. `svuint64_t svadd[_u64]_z(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+4. `svuint64_t svadd[_n_u64]_m(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+5. `svuint64_t svadd[_n_u64]_x(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm_mask_i32gather_epi64
+// SVE: svadd[_u64]_m(svptrue_b8(), src, base_addr)
+```
+
+---
+
+### `_mm_mask_i32gather_pd`
+
+**AVX2 签名**: `__m128d _mm_mask_i32gather_pd(__m128d src, double const* base_addr, __m128i vindex, __m128d mask, const int scale)`
+
+**x86 指令**: `VGATHERDPD`
+
+**描述**: Gather double-precision (64-bit) floating-point elements from memory using 32-bit indices. 64-bit elements are loaded from addresses starting at "base_addr" and offset by each 32-bit element in "vindex" (each index is scaled by the factor in "scale"). Gathered elements are merged into "dst" using "mask" (elements are copied from "src" when the highest bit is not set in the corresponding element). "scale" should be 1, 2, 4 or 8.
+
+**SVE 对应指令**:
+
+1. `svfloat64_t svadd[_f64]_m(svbool_t pg, svfloat64_t op1, svfloat64_t op2)` — SME and SME2, SVE
+2. `svfloat64_t svadd[_f64]_x(svbool_t pg, svfloat64_t op1, svfloat64_t op2)` — SME and SME2, SVE
+3. `svfloat64_t svadd[_f64]_z(svbool_t pg, svfloat64_t op1, svfloat64_t op2)` — SME and SME2, SVE
+4. `svfloat64_t svadd[_n_f64]_m(svbool_t pg, svfloat64_t op1, float64_t op2)` — SME and SME2, SVE
+5. `svfloat64_t svadd[_n_f64]_x(svbool_t pg, svfloat64_t op1, float64_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm_mask_i32gather_pd
+// SVE: svadd[_f64]_m(svptrue_b32(), src, base_addr)
+```
+
+---
+
+### `_mm_mask_i32gather_ps`
+
+**AVX2 签名**: `__m128 _mm_mask_i32gather_ps(__m128 src, float const* base_addr, __m128i vindex, __m128 mask, const int scale)`
+
+**x86 指令**: `VGATHERDPS`
+
+**描述**: Gather single-precision (32-bit) floating-point elements from memory using 32-bit indices. 32-bit elements are loaded from addresses starting at "base_addr" and offset by each 32-bit element in "vindex" (each index is scaled by the factor in "scale"). Gathered elements are merged into "dst" using "mask" (elements are copied from "src" when the highest bit is not set in the corresponding element). "scale" should be 1, 2, 4 or 8.
+
+**SVE 对应指令**:
+
+1. `svfloat16_t svadd[_f16]_m(svbool_t pg, svfloat16_t op1, svfloat16_t op2)` — SME and SME2, SVE
+2. `svfloat32_t svadd[_f32]_m(svbool_t pg, svfloat32_t op1, svfloat32_t op2)` — SME and SME2, SVE
+3. `svfloat64_t svadd[_f64]_m(svbool_t pg, svfloat64_t op1, svfloat64_t op2)` — SME and SME2, SVE
+4. `svfloat16_t svadd[_f16]_x(svbool_t pg, svfloat16_t op1, svfloat16_t op2)` — SME and SME2, SVE
+5. `svfloat32_t svadd[_f32]_x(svbool_t pg, svfloat32_t op1, svfloat32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm_mask_i32gather_ps
+// SVE: svadd[_f16]_m(svptrue_b32(), src, base_addr)
+```
+
+---
+
+### `_mm_mask_i64gather_epi32`
+
+**AVX2 签名**: `__m128i _mm_mask_i64gather_epi32(__m128i src, int const* base_addr, __m128i vindex, __m128i mask, const int scale)`
+
+**x86 指令**: `VPGATHERQD`
+
+**描述**: Gather 32-bit integers from memory using 64-bit indices. 32-bit elements are loaded from addresses starting at "base_addr" and offset by each 64-bit element in "vindex" (each index is scaled by the factor in "scale"). Gathered elements are merged into "dst" using "mask" (elements are copied from "src" when the highest bit is not set in the corresponding element). "scale" should be 1, 2, 4 or 8.
+
+**SVE 对应指令**:
+
+1. `svuint32_t svadd[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svadd[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svadd[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svadd[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svadd[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm_mask_i64gather_epi32
+// SVE: svadd[_u32]_m(svptrue_b8(), src, base_addr)
+```
+
+---
+
+### `_mm_mask_i64gather_epi64`
+
+**AVX2 签名**: `__m128i _mm_mask_i64gather_epi64(__m128i src, __int64 const* base_addr, __m128i vindex, __m128i mask, const int scale)`
+
+**x86 指令**: `VPGATHERQQ`
+
+**描述**: Gather 64-bit integers from memory using 64-bit indices. 64-bit elements are loaded from addresses starting at "base_addr" and offset by each 64-bit element in "vindex" (each index is scaled by the factor in "scale"). Gathered elements are merged into "dst" using "mask" (elements are copied from "src" when the highest bit is not set in the corresponding element). "scale" should be 1, 2, 4 or 8.
+
+**SVE 对应指令**:
+
+1. `svuint64_t svadd[_u64]_m(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+2. `svuint64_t svadd[_u64]_x(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+3. `svuint64_t svadd[_u64]_z(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+4. `svuint64_t svadd[_n_u64]_m(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+5. `svuint64_t svadd[_n_u64]_x(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm_mask_i64gather_epi64
+// SVE: svadd[_u64]_m(svptrue_b8(), src, base_addr)
+```
+
+---
+
+### `_mm_mask_i64gather_pd`
+
+**AVX2 签名**: `__m128d _mm_mask_i64gather_pd(__m128d src, double const* base_addr, __m128i vindex, __m128d mask, const int scale)`
+
+**x86 指令**: `VGATHERQPD`
+
+**描述**: Gather double-precision (64-bit) floating-point elements from memory using 64-bit indices. 64-bit elements are loaded from addresses starting at "base_addr" and offset by each 64-bit element in "vindex" (each index is scaled by the factor in "scale"). Gathered elements are merged into "dst" using "mask" (elements are copied from "src" when the highest bit is not set in the corresponding element). "scale" should be 1, 2, 4 or 8.
+
+**SVE 对应指令**:
+
+1. `svfloat64_t svadd[_f64]_m(svbool_t pg, svfloat64_t op1, svfloat64_t op2)` — SME and SME2, SVE
+2. `svfloat64_t svadd[_f64]_x(svbool_t pg, svfloat64_t op1, svfloat64_t op2)` — SME and SME2, SVE
+3. `svfloat64_t svadd[_f64]_z(svbool_t pg, svfloat64_t op1, svfloat64_t op2)` — SME and SME2, SVE
+4. `svfloat64_t svadd[_n_f64]_m(svbool_t pg, svfloat64_t op1, float64_t op2)` — SME and SME2, SVE
+5. `svfloat64_t svadd[_n_f64]_x(svbool_t pg, svfloat64_t op1, float64_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm_mask_i64gather_pd
+// SVE: svadd[_f64]_m(svptrue_b32(), src, base_addr)
+```
+
+---
+
+### `_mm_mask_i64gather_ps`
+
+**AVX2 签名**: `__m128 _mm_mask_i64gather_ps(__m128 src, float const* base_addr, __m128i vindex, __m128 mask, const int scale)`
+
+**x86 指令**: `VGATHERQPS`
+
+**描述**: Gather single-precision (32-bit) floating-point elements from memory using 64-bit indices. 32-bit elements are loaded from addresses starting at "base_addr" and offset by each 64-bit element in "vindex" (each index is scaled by the factor in "scale"). Gathered elements are merged into "dst" using "mask" (elements are copied from "src" when the highest bit is not set in the corresponding element). "scale" should be 1, 2, 4 or 8.
+
+**SVE 对应指令**:
+
+1. `svfloat16_t svadd[_f16]_m(svbool_t pg, svfloat16_t op1, svfloat16_t op2)` — SME and SME2, SVE
+2. `svfloat32_t svadd[_f32]_m(svbool_t pg, svfloat32_t op1, svfloat32_t op2)` — SME and SME2, SVE
+3. `svfloat64_t svadd[_f64]_m(svbool_t pg, svfloat64_t op1, svfloat64_t op2)` — SME and SME2, SVE
+4. `svfloat16_t svadd[_f16]_x(svbool_t pg, svfloat16_t op1, svfloat16_t op2)` — SME and SME2, SVE
+5. `svfloat32_t svadd[_f32]_x(svbool_t pg, svfloat32_t op1, svfloat32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm_mask_i64gather_ps
+// SVE: svadd[_f16]_m(svptrue_b32(), src, base_addr)
+```
+
+---
+
+### `_mm_maskload_epi32`
+
+**AVX2 签名**: `__m128i _mm_maskload_epi32(int const* mem_addr, __m128i mask)`
+
+**x86 指令**: `VPMASKMOVD`
+
+**描述**: Load packed 32-bit integers from memory into "dst" using "mask" (elements are zeroed out when the highest bit is not set in the corresponding element).
+
+**SVE 对应指令**:
+
+1. `svuint32_t svadd[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svadd[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svadd[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svadd[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svadd[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm_maskload_epi32
+// SVE: svadd[_u32]_m(svptrue_b8(), mem_addr, mask)
+```
+
+---
+
+### `_mm_maskload_epi64`
+
+**AVX2 签名**: `__m128i _mm_maskload_epi64(__int64 const* mem_addr, __m128i mask)`
+
+**x86 指令**: `VPMASKMOVQ`
+
+**描述**: Load packed 64-bit integers from memory into "dst" using "mask" (elements are zeroed out when the highest bit is not set in the corresponding element).
+
+**SVE 对应指令**:
+
+1. `svuint64_t svadd[_u64]_m(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+2. `svuint64_t svadd[_u64]_x(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+3. `svuint64_t svadd[_u64]_z(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+4. `svuint64_t svadd[_n_u64]_m(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+5. `svuint64_t svadd[_n_u64]_x(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm_maskload_epi64
+// SVE: svadd[_u64]_m(svptrue_b8(), mem_addr, mask)
+```
+
+---
+
+## Logical
+
+### `_mm256_and_si256`
+
+**AVX2 签名**: `__m256i _mm256_and_si256(__m256i a, __m256i b)`
+
+**x86 指令**: `VPAND`
+
+**描述**: Compute the bitwise AND of 256 bits (representing integer data) in "a" and "b", and store the result in "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm256_andnot_si256`
+
+**AVX2 签名**: `__m256i _mm256_andnot_si256(__m256i a, __m256i b)`
+
+**x86 指令**: `VPANDN`
+
+**描述**: Compute the bitwise NOT of 256 bits (representing integer data) in "a" and then AND with "b", and store the result in "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm256_or_si256`
+
+**AVX2 签名**: `__m256i _mm256_or_si256(__m256i a, __m256i b)`
+
+**x86 指令**: `VPOR`
+
+**描述**: Compute the bitwise OR of 256 bits (representing integer data) in "a" and "b", and store the result in "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm256_xor_si256`
+
+**AVX2 签名**: `__m256i _mm256_xor_si256(__m256i a, __m256i b)`
+
+**x86 指令**: `VPXOR`
+
+**描述**: Compute the bitwise XOR of 256 bits (representing integer data) in "a" and "b", and store the result in "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+## Miscellaneous
+
+### `_mm256_alignr_epi8`
+
+**AVX2 签名**: `__m256i _mm256_alignr_epi8(__m256i a, __m256i b, const int imm8)`
+
+**x86 指令**: `VPALIGNR`
+
+**描述**: Concatenate pairs of 16-byte blocks in "a" and "b" into a 32-byte temporary result, shift the result right by "imm8" bytes, and store the low 16 bytes in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint8_t svand[_u8]_m(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+2. `svuint8_t svand[_u8]_x(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+3. `svuint8_t svand[_u8]_z(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+4. `svuint8_t svand[_n_u8]_m(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+5. `svuint8_t svand[_n_u8]_x(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_alignr_epi8
+// SVE: svand[_u8]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_movemask_epi8`
+
+**AVX2 签名**: `int _mm256_movemask_epi8(__m256i a)`
+
+**x86 指令**: `VPMOVMSKB`
+
+**描述**: Create mask from the most significant bit of each 8-bit element in "a", and store the result in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint32_t svand[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svand[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svand[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svand[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svand[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_movemask_epi8
+// SVE: svand[_u32]_m(svptrue_b8(), a)
+```
+
+---
+
+### `_mm256_mpsadbw_epu8`
+
+**AVX2 签名**: `__m256i _mm256_mpsadbw_epu8(__m256i a, __m256i b, const int imm8)`
+
+**x86 指令**: `VMPSADBW`
+
+**描述**: Compute the sum of absolute differences (SADs) of quadruplets of unsigned 8-bit integers in "a" compared to those in "b", and store the 16-bit results in "dst".
+	Eight SADs are performed for each 128-bit lane using one quadruplet from "b" and eight quadruplets from "a". One quadruplet is selected from "b" starting at on the offset specified in "imm8". Eight quadruplets are formed from sequential 8-bit integers selected from "a" starting at the offset specified in "imm8".
+
+**SVE 对应指令**:
+
+1. `svuint8_t svand[_u8]_m(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+2. `svuint8_t svand[_u8]_x(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+3. `svuint8_t svand[_u8]_z(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+4. `svuint8_t svand[_n_u8]_m(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+5. `svuint8_t svand[_n_u8]_x(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_mpsadbw_epu8
+// SVE: svand[_u8]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_packs_epi16`
+
+**AVX2 签名**: `__m256i _mm256_packs_epi16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPACKSSWB`
+
+**描述**: Convert packed signed 16-bit integers from "a" and "b" to packed 8-bit integers using signed saturation, and store the results in "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm256_packs_epi32`
+
+**AVX2 签名**: `__m256i _mm256_packs_epi32(__m256i a, __m256i b)`
+
+**x86 指令**: `VPACKSSDW`
+
+**描述**: Convert packed signed 32-bit integers from "a" and "b" to packed 16-bit integers using signed saturation, and store the results in "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm256_packus_epi16`
+
+**AVX2 签名**: `__m256i _mm256_packus_epi16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPACKUSWB`
+
+**描述**: Convert packed signed 16-bit integers from "a" and "b" to packed 8-bit integers using unsigned saturation, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint8_t svand[_u8]_m(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+2. `svuint8_t svand[_u8]_x(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+3. `svuint8_t svand[_u8]_z(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+4. `svuint8_t svand[_n_u8]_m(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+5. `svuint8_t svand[_n_u8]_x(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_packus_epi16
+// SVE: svand[_u8]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_packus_epi32`
+
+**AVX2 签名**: `__m256i _mm256_packus_epi32(__m256i a, __m256i b)`
+
+**x86 指令**: `VPACKUSDW`
+
+**描述**: Convert packed signed 32-bit integers from "a" and "b" to packed 16-bit integers using unsigned saturation, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svand[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svand[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svand[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svand[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svand[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_packus_epi32
+// SVE: svand[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+## Probability/Statistics
+
+### `_mm256_avg_epu16`
+
+**AVX2 签名**: `__m256i _mm256_avg_epu16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPAVGW`
+
+**描述**: Average packed unsigned 16-bit integers in "a" and "b", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svand[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svand[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svand[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svand[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svand[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_avg_epu16
+// SVE: svand[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_avg_epu8`
+
+**AVX2 签名**: `__m256i _mm256_avg_epu8(__m256i a, __m256i b)`
+
+**x86 指令**: `VPAVGB`
+
+**描述**: Average packed unsigned 8-bit integers in "a" and "b", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint8_t svand[_u8]_m(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+2. `svuint8_t svand[_u8]_x(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+3. `svuint8_t svand[_u8]_z(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+4. `svuint8_t svand[_n_u8]_m(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+5. `svuint8_t svand[_n_u8]_x(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_avg_epu8
+// SVE: svand[_u8]_m(svptrue_b8(), a, b)
+```
+
+---
+
+## Shift
+
+### `_mm256_bslli_epi128`
+
+**AVX2 签名**: `__m256i _mm256_bslli_epi128(__m256i a, const int imm8)`
+
+**x86 指令**: `VPSLLDQ`
+
+**描述**: Shift 128-bit lanes in "a" left by "imm8" bytes while shifting in zeros, and store the results in "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm256_bsrli_epi128`
+
+**AVX2 签名**: `__m256i _mm256_bsrli_epi128(__m256i a, const int imm8)`
+
+**x86 指令**: `VPSRLDQ`
+
+**描述**: Shift 128-bit lanes in "a" right by "imm8" bytes while shifting in zeros, and store the results in "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm256_sll_epi16`
+
+**AVX2 签名**: `__m256i _mm256_sll_epi16(__m256i a, __m128i count)`
+
+**x86 指令**: `VPSLLW`
+
+**描述**: Shift packed 16-bit integers in "a" left by "count" while shifting in zeros, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svand[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svand[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svand[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svand[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svand[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_sll_epi16
+// SVE: svand[_u16]_m(svptrue_b8(), a, count)
+```
+
+---
+
+### `_mm256_sll_epi32`
+
+**AVX2 签名**: `__m256i _mm256_sll_epi32(__m256i a, __m128i count)`
+
+**x86 指令**: `VPSLLD`
+
+**描述**: Shift packed 32-bit integers in "a" left by "count" while shifting in zeros, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint32_t svand[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svand[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svand[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svand[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svand[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_sll_epi32
+// SVE: svand[_u32]_m(svptrue_b8(), a, count)
+```
+
+---
+
+### `_mm256_sll_epi64`
+
+**AVX2 签名**: `__m256i _mm256_sll_epi64(__m256i a, __m128i count)`
+
+**x86 指令**: `VPSLLQ`
+
+**描述**: Shift packed 64-bit integers in "a" left by "count" while shifting in zeros, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint64_t svand[_u64]_m(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+2. `svuint64_t svand[_u64]_x(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+3. `svuint64_t svand[_u64]_z(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+4. `svuint64_t svand[_n_u64]_m(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+5. `svuint64_t svand[_n_u64]_x(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_sll_epi64
+// SVE: svand[_u64]_m(svptrue_b8(), a, count)
+```
+
+---
+
+### `_mm256_slli_epi16`
+
+**AVX2 签名**: `__m256i _mm256_slli_epi16(__m256i a, int imm8)`
+
+**x86 指令**: `VPSLLW`
+
+**描述**: Shift packed 16-bit integers in "a" left by "imm8" while shifting in zeros, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svand[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svand[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svand[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svand[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svand[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_slli_epi16
+// SVE: svand[_u16]_m(svptrue_b8(), a, imm8)
+```
+
+---
+
+### `_mm256_slli_epi32`
+
+**AVX2 签名**: `__m256i _mm256_slli_epi32(__m256i a, int imm8)`
+
+**x86 指令**: `VPSLLD`
+
+**描述**: Shift packed 32-bit integers in "a" left by "imm8" while shifting in zeros, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint32_t svand[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svand[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svand[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svand[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svand[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_slli_epi32
+// SVE: svand[_u32]_m(svptrue_b8(), a, imm8)
+```
+
+---
+
+### `_mm256_slli_epi64`
+
+**AVX2 签名**: `__m256i _mm256_slli_epi64(__m256i a, int imm8)`
+
+**x86 指令**: `VPSLLQ`
+
+**描述**: Shift packed 64-bit integers in "a" left by "imm8" while shifting in zeros, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint64_t svand[_u64]_m(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+2. `svuint64_t svand[_u64]_x(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+3. `svuint64_t svand[_u64]_z(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+4. `svuint64_t svand[_n_u64]_m(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+5. `svuint64_t svand[_n_u64]_x(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_slli_epi64
+// SVE: svand[_u64]_m(svptrue_b8(), a, imm8)
+```
+
+---
+
+### `_mm256_slli_si256`
+
+**AVX2 签名**: `__m256i _mm256_slli_si256(__m256i a, const int imm8)`
+
+**x86 指令**: `VPSLLDQ`
+
+**描述**: Shift 128-bit lanes in "a" left by "imm8" bytes while shifting in zeros, and store the results in "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm256_sllv_epi32`
+
+**AVX2 签名**: `__m256i _mm256_sllv_epi32(__m256i a, __m256i count)`
+
+**x86 指令**: `VPSLLVD`
+
+**描述**: Shift packed 32-bit integers in "a" left by the amount specified by the corresponding element in "count" while shifting in zeros, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint32_t svand[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svand[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svand[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svand[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svand[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_sllv_epi32
+// SVE: svand[_u32]_m(svptrue_b8(), a, count)
+```
+
+---
+
+### `_mm256_sllv_epi64`
+
+**AVX2 签名**: `__m256i _mm256_sllv_epi64(__m256i a, __m256i count)`
+
+**x86 指令**: `VPSLLVQ`
+
+**描述**: Shift packed 64-bit integers in "a" left by the amount specified by the corresponding element in "count" while shifting in zeros, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint64_t svand[_u64]_m(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+2. `svuint64_t svand[_u64]_x(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+3. `svuint64_t svand[_u64]_z(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+4. `svuint64_t svand[_n_u64]_m(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+5. `svuint64_t svand[_n_u64]_x(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_sllv_epi64
+// SVE: svand[_u64]_m(svptrue_b8(), a, count)
+```
+
+---
+
+### `_mm256_sra_epi16`
+
+**AVX2 签名**: `__m256i _mm256_sra_epi16(__m256i a, __m128i count)`
+
+**x86 指令**: `VPSRAW`
+
+**描述**: Shift packed 16-bit integers in "a" right by "count" while shifting in sign bits, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svand[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svand[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svand[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svand[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svand[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_sra_epi16
+// SVE: svand[_u16]_m(svptrue_b8(), a, count)
+```
+
+---
+
+### `_mm256_sra_epi32`
+
+**AVX2 签名**: `__m256i _mm256_sra_epi32(__m256i a, __m128i count)`
+
+**x86 指令**: `VPSRAD`
+
+**描述**: Shift packed 32-bit integers in "a" right by "count" while shifting in sign bits, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint32_t svand[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svand[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svand[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svand[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svand[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_sra_epi32
+// SVE: svand[_u32]_m(svptrue_b8(), a, count)
+```
+
+---
+
+### `_mm256_srai_epi16`
+
+**AVX2 签名**: `__m256i _mm256_srai_epi16(__m256i a, int imm8)`
+
+**x86 指令**: `VPSRAW`
+
+**描述**: Shift packed 16-bit integers in "a" right by "imm8" while shifting in sign bits, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svand[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svand[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svand[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svand[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svand[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_srai_epi16
+// SVE: svand[_u16]_m(svptrue_b8(), a, imm8)
+```
+
+---
+
+### `_mm256_srai_epi32`
+
+**AVX2 签名**: `__m256i _mm256_srai_epi32(__m256i a, int imm8)`
+
+**x86 指令**: `VPSRAD`
+
+**描述**: Shift packed 32-bit integers in "a" right by "imm8" while shifting in sign bits, and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint32_t svand[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svand[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svand[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svand[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svand[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_srai_epi32
+// SVE: svand[_u32]_m(svptrue_b8(), a, imm8)
