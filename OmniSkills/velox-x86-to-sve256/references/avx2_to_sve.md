@@ -3598,3 +3598,717 @@
 2. `svuint8_t sveor[_u8]_x(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
 3. `svuint8_t sveor[_u8]_z(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
 4. `svuint8_t sveor[_n_u8]_m(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+5. `svuint8_t sveor[_n_u8]_x(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_broadcastb_epi8
+// SVE: sveor[_u8]_m(svptrue_b8(), a)
+```
+
+---
+
+### `_mm256_broadcastd_epi32`
+
+**AVX2 签名**: `__m256i _mm256_broadcastd_epi32(__m128i a)`
+
+**x86 指令**: `VPBROADCASTD`
+
+**描述**: Broadcast the low packed 32-bit integer from "a" to all elements of "dst".
+
+**SVE 对应指令**:
+
+1. `svuint32_t sveor[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t sveor[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t sveor[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t sveor[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t sveor[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_broadcastd_epi32
+// SVE: sveor[_u32]_m(svptrue_b8(), a)
+```
+
+---
+
+### `_mm256_broadcastq_epi64`
+
+**AVX2 签名**: `__m256i _mm256_broadcastq_epi64(__m128i a)`
+
+**x86 指令**: `VPBROADCASTQ`
+
+**描述**: Broadcast the low packed 64-bit integer from "a" to all elements of "dst".
+
+**SVE 对应指令**:
+
+1. `svuint64_t sveor[_u64]_m(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+2. `svuint64_t sveor[_u64]_x(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+3. `svuint64_t sveor[_u64]_z(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+4. `svuint64_t sveor[_n_u64]_m(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+5. `svuint64_t sveor[_n_u64]_x(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_broadcastq_epi64
+// SVE: sveor[_u64]_m(svptrue_b8(), a)
+```
+
+---
+
+### `_mm256_broadcastsd_pd`
+
+**AVX2 签名**: `__m256d _mm256_broadcastsd_pd(__m128d a)`
+
+**x86 指令**: `VBROADCASTSD`
+
+**描述**: Broadcast the low double-precision (64-bit) floating-point element from "a" to all elements of "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm256_broadcastsi128_si256`
+
+**AVX2 签名**: `__m256i _mm256_broadcastsi128_si256(__m128i a)`
+
+**x86 指令**: `VBROADCASTI128`
+
+**描述**: Broadcast 128 bits of integer data from "a" to all 128-bit lanes in "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm256_broadcastss_ps`
+
+**AVX2 签名**: `__m256 _mm256_broadcastss_ps(__m128 a)`
+
+**x86 指令**: `VBROADCASTSS`
+
+**描述**: Broadcast the low single-precision (32-bit) floating-point element from "a" to all elements of "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm256_broadcastw_epi16`
+
+**AVX2 签名**: `__m256i _mm256_broadcastw_epi16(__m128i a)`
+
+**x86 指令**: `VPBROADCASTW`
+
+**描述**: Broadcast the low packed 16-bit integer from "a" to all elements of "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t sveor[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t sveor[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t sveor[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t sveor[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t sveor[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_broadcastw_epi16
+// SVE: sveor[_u16]_m(svptrue_b8(), a)
+```
+
+---
+
+### `_mm256_extract_epi16`
+
+**AVX2 签名**: `int _mm256_extract_epi16(__m256i a, const int index)`
+
+**描述**: Extract a 16-bit integer from "a", selected with "index", and store the result in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svand[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svand[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svand[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svand[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svand[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_extract_epi16
+// SVE: svand[_u16]_m(svptrue_b8(), a, index)
+```
+
+---
+
+### `_mm256_extract_epi8`
+
+**AVX2 签名**: `int _mm256_extract_epi8(__m256i a, const int index)`
+
+**描述**: Extract an 8-bit integer from "a", selected with "index", and store the result in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint8_t svand[_u8]_m(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+2. `svuint8_t svand[_u8]_x(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+3. `svuint8_t svand[_u8]_z(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+4. `svuint8_t svand[_n_u8]_m(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+5. `svuint8_t svand[_n_u8]_x(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_extract_epi8
+// SVE: svand[_u8]_m(svptrue_b8(), a, index)
+```
+
+---
+
+### `_mm256_extracti128_si256`
+
+**AVX2 签名**: `__m128i _mm256_extracti128_si256(__m256i a, const int imm8)`
+
+**x86 指令**: `VEXTRACTI128`
+
+**描述**: Extract 128 bits (composed of integer data) from "a", selected with "imm8", and store the result in "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm256_inserti128_si256`
+
+**AVX2 签名**: `__m256i _mm256_inserti128_si256(__m256i a, __m128i b, const int imm8)`
+
+**x86 指令**: `VINSERTI128`
+
+**描述**: Copy "a" to "dst", then insert 128 bits (composed of integer data) from "b" into "dst" at the location specified by "imm8".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm256_permute2x128_si256`
+
+**AVX2 签名**: `__m256i _mm256_permute2x128_si256(__m256i a, __m256i b, const int imm8)`
+
+**x86 指令**: `VPERM2I128`
+
+**描述**: Shuffle 128-bits (composed of integer data) selected by "imm8" from "a" and "b", and store the results in "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm256_permute4x64_epi64`
+
+**AVX2 签名**: `__m256i _mm256_permute4x64_epi64(__m256i a, const int imm8)`
+
+**x86 指令**: `VPERMQ`
+
+**描述**: Shuffle 64-bit integers in "a" across lanes using the control in "imm8", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint64_t svand[_u64]_m(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+2. `svuint64_t svand[_u64]_x(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+3. `svuint64_t svand[_u64]_z(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+4. `svuint64_t svand[_n_u64]_m(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+5. `svuint64_t svand[_n_u64]_x(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_permute4x64_epi64
+// SVE: svand[_u64]_m(svptrue_b8(), a, imm8)
+```
+
+---
+
+### `_mm256_permute4x64_pd`
+
+**AVX2 签名**: `__m256d _mm256_permute4x64_pd(__m256d a, const int imm8)`
+
+**x86 指令**: `VPERMPD`
+
+**描述**: Shuffle double-precision (64-bit) floating-point elements in "a" across lanes using the control in "imm8", and store the results in "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm256_permutevar8x32_epi32`
+
+**AVX2 签名**: `__m256i _mm256_permutevar8x32_epi32(__m256i a, __m256i idx)`
+
+**x86 指令**: `VPERMD`
+
+**描述**: Shuffle 32-bit integers in "a" across lanes using the corresponding index in "idx", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint32_t svand[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svand[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svand[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svand[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svand[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_permutevar8x32_epi32
+// SVE: svand[_u32]_m(svptrue_b8(), a, idx)
+```
+
+---
+
+### `_mm256_permutevar8x32_ps`
+
+**AVX2 签名**: `__m256 _mm256_permutevar8x32_ps(__m256 a, __m256i idx)`
+
+**x86 指令**: `VPERMPS`
+
+**描述**: Shuffle single-precision (32-bit) floating-point elements in "a" across lanes using the corresponding index in "idx".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm256_shuffle_epi32`
+
+**AVX2 签名**: `__m256i _mm256_shuffle_epi32(__m256i a, const int imm8)`
+
+**x86 指令**: `VPSHUFD`
+
+**描述**: Shuffle 32-bit integers in "a" within 128-bit lanes using the control in "imm8", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint32_t svand[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svand[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svand[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svand[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svand[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_shuffle_epi32
+// SVE: svand[_u32]_m(svptrue_b8(), a, imm8)
+```
+
+---
+
+### `_mm256_shuffle_epi8`
+
+**AVX2 签名**: `__m256i _mm256_shuffle_epi8(__m256i a, __m256i b)`
+
+**x86 指令**: `VPSHUFB`
+
+**描述**: Shuffle 8-bit integers in "a" within 128-bit lanes according to shuffle control mask in the corresponding 8-bit element of "b", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint8_t svand[_u8]_m(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+2. `svuint8_t svand[_u8]_x(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+3. `svuint8_t svand[_u8]_z(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+4. `svuint8_t svand[_n_u8]_m(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+5. `svuint8_t svand[_n_u8]_x(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_shuffle_epi8
+// SVE: svand[_u8]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_shufflehi_epi16`
+
+**AVX2 签名**: `__m256i _mm256_shufflehi_epi16(__m256i a, const int imm8)`
+
+**x86 指令**: `VPSHUFHW`
+
+**描述**: Shuffle 16-bit integers in the high 64 bits of 128-bit lanes of "a" using the control in "imm8". Store the results in the high 64 bits of 128-bit lanes of "dst", with the low 64 bits of 128-bit lanes being copied from from "a" to "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t sveor[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t sveor[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t sveor[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t sveor[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t sveor[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_shufflehi_epi16
+// SVE: sveor[_u16]_m(svptrue_b8(), a, imm8)
+```
+
+---
+
+### `_mm256_shufflelo_epi16`
+
+**AVX2 签名**: `__m256i _mm256_shufflelo_epi16(__m256i a, const int imm8)`
+
+**x86 指令**: `VPSHUFLW`
+
+**描述**: Shuffle 16-bit integers in the low 64 bits of 128-bit lanes of "a" using the control in "imm8". Store the results in the low 64 bits of 128-bit lanes of "dst", with the high 64 bits of 128-bit lanes being copied from from "a" to "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t sveor[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t sveor[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t sveor[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t sveor[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t sveor[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_shufflelo_epi16
+// SVE: sveor[_u16]_m(svptrue_b8(), a, imm8)
+```
+
+---
+
+### `_mm256_unpackhi_epi16`
+
+**AVX2 签名**: `__m256i _mm256_unpackhi_epi16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPUNPCKHWD`
+
+**描述**: Unpack and interleave 16-bit integers from the high half of each 128-bit lane in "a" and "b", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svand[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svand[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svand[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svand[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svand[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_unpackhi_epi16
+// SVE: svand[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_unpackhi_epi32`
+
+**AVX2 签名**: `__m256i _mm256_unpackhi_epi32(__m256i a, __m256i b)`
+
+**x86 指令**: `VPUNPCKHDQ`
+
+**描述**: Unpack and interleave 32-bit integers from the high half of each 128-bit lane in "a" and "b", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint32_t svand[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svand[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svand[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svand[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svand[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_unpackhi_epi32
+// SVE: svand[_u32]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_unpackhi_epi64`
+
+**AVX2 签名**: `__m256i _mm256_unpackhi_epi64(__m256i a, __m256i b)`
+
+**x86 指令**: `VPUNPCKHQDQ`
+
+**描述**: Unpack and interleave 64-bit integers from the high half of each 128-bit lane in "a" and "b", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint64_t svand[_u64]_m(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+2. `svuint64_t svand[_u64]_x(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+3. `svuint64_t svand[_u64]_z(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+4. `svuint64_t svand[_n_u64]_m(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+5. `svuint64_t svand[_n_u64]_x(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_unpackhi_epi64
+// SVE: svand[_u64]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_unpackhi_epi8`
+
+**AVX2 签名**: `__m256i _mm256_unpackhi_epi8(__m256i a, __m256i b)`
+
+**x86 指令**: `VPUNPCKHBW`
+
+**描述**: Unpack and interleave 8-bit integers from the high half of each 128-bit lane in "a" and "b", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint8_t svand[_u8]_m(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+2. `svuint8_t svand[_u8]_x(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+3. `svuint8_t svand[_u8]_z(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+4. `svuint8_t svand[_n_u8]_m(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+5. `svuint8_t svand[_n_u8]_x(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_unpackhi_epi8
+// SVE: svand[_u8]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_unpacklo_epi16`
+
+**AVX2 签名**: `__m256i _mm256_unpacklo_epi16(__m256i a, __m256i b)`
+
+**x86 指令**: `VPUNPCKLWD`
+
+**描述**: Unpack and interleave 16-bit integers from the low half of each 128-bit lane in "a" and "b", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t svand[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t svand[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t svand[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t svand[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t svand[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_unpacklo_epi16
+// SVE: svand[_u16]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_unpacklo_epi32`
+
+**AVX2 签名**: `__m256i _mm256_unpacklo_epi32(__m256i a, __m256i b)`
+
+**x86 指令**: `VPUNPCKLDQ`
+
+**描述**: Unpack and interleave 32-bit integers from the low half of each 128-bit lane in "a" and "b", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint32_t svand[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svand[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svand[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svand[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svand[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_unpacklo_epi32
+// SVE: svand[_u32]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_unpacklo_epi64`
+
+**AVX2 签名**: `__m256i _mm256_unpacklo_epi64(__m256i a, __m256i b)`
+
+**x86 指令**: `VPUNPCKLQDQ`
+
+**描述**: Unpack and interleave 64-bit integers from the low half of each 128-bit lane in "a" and "b", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint64_t svand[_u64]_m(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+2. `svuint64_t svand[_u64]_x(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+3. `svuint64_t svand[_u64]_z(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+4. `svuint64_t svand[_n_u64]_m(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+5. `svuint64_t svand[_n_u64]_x(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_unpacklo_epi64
+// SVE: svand[_u64]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm256_unpacklo_epi8`
+
+**AVX2 签名**: `__m256i _mm256_unpacklo_epi8(__m256i a, __m256i b)`
+
+**x86 指令**: `VPUNPCKLBW`
+
+**描述**: Unpack and interleave 8-bit integers from the low half of each 128-bit lane in "a" and "b", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint8_t svand[_u8]_m(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+2. `svuint8_t svand[_u8]_x(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+3. `svuint8_t svand[_u8]_z(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+4. `svuint8_t svand[_n_u8]_m(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+5. `svuint8_t svand[_n_u8]_x(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm256_unpacklo_epi8
+// SVE: svand[_u8]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm_blend_epi32`
+
+**AVX2 签名**: `__m128i _mm_blend_epi32(__m128i a, __m128i b, const int imm8)`
+
+**x86 指令**: `VPBLENDD`
+
+**描述**: Blend packed 32-bit integers from "a" and "b" using control mask "imm8", and store the results in "dst".
+
+**SVE 对应指令**:
+
+1. `svuint32_t svand[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t svand[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t svand[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t svand[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t svand[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm_blend_epi32
+// SVE: svand[_u32]_m(svptrue_b8(), a, b)
+```
+
+---
+
+### `_mm_broadcastb_epi8`
+
+**AVX2 签名**: `__m128i _mm_broadcastb_epi8(__m128i a)`
+
+**x86 指令**: `VPBROADCASTB`
+
+**描述**: Broadcast the low packed 8-bit integer from "a" to all elements of "dst".
+
+**SVE 对应指令**:
+
+1. `svuint8_t sveor[_u8]_m(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+2. `svuint8_t sveor[_u8]_x(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+3. `svuint8_t sveor[_u8]_z(svbool_t pg, svuint8_t op1, svuint8_t op2)` — SME and SME2, SVE
+4. `svuint8_t sveor[_n_u8]_m(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+5. `svuint8_t sveor[_n_u8]_x(svbool_t pg, svuint8_t op1, uint8_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm_broadcastb_epi8
+// SVE: sveor[_u8]_m(svptrue_b8(), a)
+```
+
+---
+
+### `_mm_broadcastd_epi32`
+
+**AVX2 签名**: `__m128i _mm_broadcastd_epi32(__m128i a)`
+
+**x86 指令**: `VPBROADCASTD`
+
+**描述**: Broadcast the low packed 32-bit integer from "a" to all elements of "dst".
+
+**SVE 对应指令**:
+
+1. `svuint32_t sveor[_u32]_m(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+2. `svuint32_t sveor[_u32]_x(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+3. `svuint32_t sveor[_u32]_z(svbool_t pg, svuint32_t op1, svuint32_t op2)` — SME and SME2, SVE
+4. `svuint32_t sveor[_n_u32]_m(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+5. `svuint32_t sveor[_n_u32]_x(svbool_t pg, svuint32_t op1, uint32_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm_broadcastd_epi32
+// SVE: sveor[_u32]_m(svptrue_b8(), a)
+```
+
+---
+
+### `_mm_broadcastq_epi64`
+
+**AVX2 签名**: `__m128i _mm_broadcastq_epi64(__m128i a)`
+
+**x86 指令**: `VPBROADCASTQ`
+
+**描述**: Broadcast the low packed 64-bit integer from "a" to all elements of "dst".
+
+**SVE 对应指令**:
+
+1. `svuint64_t sveor[_u64]_m(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+2. `svuint64_t sveor[_u64]_x(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+3. `svuint64_t sveor[_u64]_z(svbool_t pg, svuint64_t op1, svuint64_t op2)` — SME and SME2, SVE
+4. `svuint64_t sveor[_n_u64]_m(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+5. `svuint64_t sveor[_n_u64]_x(svbool_t pg, svuint64_t op1, uint64_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm_broadcastq_epi64
+// SVE: sveor[_u64]_m(svptrue_b8(), a)
+```
+
+---
+
+### `_mm_broadcastsd_pd`
+
+**AVX2 签名**: `__m128d _mm_broadcastsd_pd(__m128d a)`
+
+**x86 指令**: `MOVDDUP`
+
+**描述**: Broadcast the low double-precision (64-bit) floating-point element from "a" to all elements of "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm_broadcastsi128_si256`
+
+**AVX2 签名**: `__m256i _mm_broadcastsi128_si256(__m128i a)`
+
+**x86 指令**: `VBROADCASTI128`
+
+**描述**: Broadcast 128 bits of integer data from "a" to all 128-bit lanes in "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm_broadcastss_ps`
+
+**AVX2 签名**: `__m128 _mm_broadcastss_ps(__m128 a)`
+
+**x86 指令**: `VBROADCASTSS`
+
+**描述**: Broadcast the low single-precision (32-bit) floating-point element from "a" to all elements of "dst".
+
+**SVE 对应**: 未找到直接映射，可能需要组合多条指令或使用 NEON
+
+---
+
+### `_mm_broadcastw_epi16`
+
+**AVX2 签名**: `__m128i _mm_broadcastw_epi16(__m128i a)`
+
+**x86 指令**: `VPBROADCASTW`
+
+**描述**: Broadcast the low packed 16-bit integer from "a" to all elements of "dst".
+
+**SVE 对应指令**:
+
+1. `svuint16_t sveor[_u16]_m(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+2. `svuint16_t sveor[_u16]_x(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+3. `svuint16_t sveor[_u16]_z(svbool_t pg, svuint16_t op1, svuint16_t op2)` — SME and SME2, SVE
+4. `svuint16_t sveor[_n_u16]_m(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+5. `svuint16_t sveor[_n_u16]_x(svbool_t pg, svuint16_t op1, uint16_t op2)` — SME and SME2, SVE
+
+**迁移示例** (假设 VL=256-bit):
+```c
+// AVX2: _mm_broadcastw_epi16
+// SVE: sveor[_u16]_m(svptrue_b8(), a)
+```
+
+---
+
