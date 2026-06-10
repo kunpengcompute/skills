@@ -4,11 +4,11 @@
 
 ### 项目定位
 
-鲲鹏BoostKit Agent Skills：将鲲鹏软件栈专家经验与能力模块化、可复用，使能用户与开发者。
+鲲鹏 BoostKit Agent Skills：将鲲鹏软件栈专家经验与能力模块化、可复用，赋能用户与开发者。
 
-在 AI 智能体（Agent）上下文中，技能（Skills）是为扩展 Agent 能力而设计的模块化功能单元。每个 Skill 封装了指令、元数据及可选资源（如可执行脚本、模板），当 Agent（比如 OpenClaw、OpenCode 等）通过意图识别匹配到相关上下文时，自动调用对应 Skill。
+在 AI 智能体（Agent）上下文中，技能（Skills）是为扩展 Agent 能力而设计的模块化功能单元。每个 Skill 封装了指令、元数据及可选资源（如可执行脚本、模板），当 Agent（如 OpenClaw、OpenCode 等）通过意图识别匹配到相关上下文时，自动调用对应 Skill。
 
-本仓库是一个基于开源 Agent 能力提供 Skills 参考的核心仓库，专注于 **Agent Skills for Kunpeng** 的开发与管理，旨在促进鲲鹏基础加速域专家 Skills 的协同开发和创新。
+本仓库是基于开源 Agent Skill 标准提供 Skills 参考的核心仓库，专注于 **Agent Skills for Kunpeng** 的开发与管理，旨在促进鲲鹏基础加速域专家 Skill 的协同开发和创新。
 
 ### 核心目标
 
@@ -21,9 +21,9 @@
 
 核心优势：
 
-- 赋予 Agent 专精能力：为鲲鹏BoostKit任务定制稳定工作流，实现领域泛化。
-- 减少重复工作：一次创建，多平台复用（OpenClaw、OpenCode、CodeBuddy、TRAE 等）。
-- 组合能力：通过整合多个 Skills 构建复杂工作流程。
+- 赋予 Agent 专精能力：为鲲鹏 BoostKit 任务定制稳定工作流，实现领域泛化
+- 减少重复工作：一次创建，多平台复用（OpenClaw、OpenCode、CodeBuddy、TRAE 等）
+- 组合能力：通过整合多个 Skills 构建复杂工作流程
 
 ### 目标用户
 
@@ -31,11 +31,58 @@
 - 场景化应用开发者
 - 内外部合作伙伴
 
-
 ### 存放规则
 
-- BoostKit Skills 目录下有各个SIG组织独立的目录，每个目录下有该SIG组织的Skills。
-- 总目录下有各SIG组织的Skills文件，对应规范要求按各自SIG组织的规范执行。
+**分类方案**：
+
+Skill 按主要用途分为三大类，每个大类包含多个子类，分类标识通过 `metadata.category` 字段标注：
+
+| 大类 | 目录名 | 子类示例 | 说明 |
+| --- | --- | --- | --- |
+| **作业类** | `task/` | `system-design`（系统设计）、`software-dev`（软件开发）等 | 面向开发流程中具体作业环境的 Skill，提升各个环节的效率和质量 |
+| **业务类** | `domain/` | `database`（数据库）、`bigdata`（大数据）、`cloud`（云计算/容器）、`lib`（基础库）、`media`（多媒体）等 | 面向特定产品领域或业务场景的 Skill，封装领域专有知识和操作流程 |
+| **工具类** | `utility/` | `vcs`（Git 工作流/提交消息生成）、`doc`（文档处理）等 | 面向通用工具操作的 Skill，不依赖特定业务领域，可跨团队复用 |
+
+**分类规则**：
+
+- **规则一**：分类标识通过 `metadata.category` 字段标注，值必须与所在分类目录名一致
+- **规则二**：当 Skill 跨多个分类时，必须选择其最主要的用途作为 `metadata.category` 标识，通过 `metadata.tags` 字段标注其他相关分类
+
+```yaml
+# 示例：一个以数据库领域知识为主、同时涉及软件开发流程的 Skill
+# 该 Skill 位于 domain/database/ 目录下
+metadata:
+  category: "domain-database"
+  tags: ["task-software-dev"]
+```
+
+**分类判断指引**：
+
+通过以下三个问题确定 Skill 所属大类：
+
+**问题 1：Skill 的核心价值是什么？**
+
+| 核心价值 | 分类 |
+| --- | --- |
+| 封装特定领域知识 | 业务类（domain） |
+| 提供通用工程方法，例如代码审查、测试生成 | 作业类（task） |
+| 提供工具操作能力（如文档处理、Git 使用） | 工具类（utility） |
+
+**问题 2：Skill 的使用范围？**
+
+| 使用范围 | 分类 |
+| --- | --- |
+| 仅限特定产品/领域使用 | 业务类（domain） |
+| 按作业流程阶段适用（设计/开发/测试） | 作业类（task） |
+| 不依赖特定领域，任何团队均可使用 | 工具类（utility） |
+
+**问题 3：如果去掉领域知识，Skill 还有价值吗？**
+
+| 回答 | 分类 |
+| --- | --- |
+| 没有 | 业务类（domain） |
+| 有 | 作业类（task） |
+| 不涉及领域知识 | 工具类（utility） |
 
 
 ## 免责声明
