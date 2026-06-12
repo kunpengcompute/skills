@@ -117,6 +117,7 @@ npx skills add https://gitcode.com/boostkit/skills.git --all
 | 13 | arm64-arch-reference | skills/arm64-arch-reference | 查阅 ARM A-profile（AArch64/A64）架构特性（FEAT_*）与 A64 指令的权威速查表，覆盖特性引入版本、可选/强制状态、指令汇编模板/编码（Encoding）及「指令受哪个特性门控」，数据源自 ARM 官方机器可读规范（AARCHMRS，对应手册 DDI 0487 M.b / Armv9.6）。设计文档见 docs/arm64-arch-reference/DESIGN.md。 | 王如锋 | 王如锋 |
 | 14 | feature-design-doc | skills/feature-design-doc | 阅读某性能/优化特性的源码,产出图文并茂、可交付的设计文档(Markdown + Word/docx),支持中文/英文/中英双语;固化章节骨架、结构图 SVG 矢量 + 行为图 PlantUML、严格 docx 排版(中文宋体五号/英文 Times New Roman 五号/全黑无斜体/单倍行距段后6磅)、英文版图内文字也译英、图片与文档同级同次提交。 | 黄晓权 | 黄晓权 |
 | 15 | theory-driven-pipeline-optimization | skills/theory-driven-pipeline-optimization | 面向计算密集型 kernel 的理论性能上限分析：识别核心指令和依赖链，编写微基准测量指令时延、吞吐和组合执行成本，再根据算法指令计数、依赖图和数据移动推导 theoretical cycles/unit、理论吞吐上限和优化 headroom。 | 韦安琪 | 韦安琪 |
+| 16 | kunpeng-library-opportunity | skills/kunpeng-library-opportunity | 分析运行中的 Linux C/C++ 服务、例如RPC 服务组件，识别动态库、疑似静态链接库、ELF 与 proc 证据，结合 perf-hotspot 采样结果判断鲲鹏 BoostKit/BoostCore 库使能机会，例如 KAE、zlib、zstd、lz4、snappy、kpglibc、protobuf、sonic-cpp、KQMalloc、和 AVX2KI。 | 龚晓婷 | 龚晓婷 |
 
 
 
