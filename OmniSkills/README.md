@@ -83,6 +83,16 @@ SQL 全链路性能优化技能 —— 对单条目标 SQL 在 Omni 引擎上做
 
 详见 [omni-flamegraph-operator-analysis/SKILL.md](omni-flamegraph-operator-analysis/SKILL.md)
 
+#### velox-flamegraph-analyzer-skill
+
+Velox 火焰图全链路瓶颈分析技能 —— 解析 async-profiler 火焰图 HTML 文件，自动识别 Java/C++(Velox)/Kernel 热点帧，映射到 Velox 业务代码模块，按功能域（Scan/Join/Aggregate/Shuffle 等）聚类生成结论，输出带可点击火焰图链接的交互式 HTML 报告，并针对 ARM/aarch64 平台提供专属优化建议。
+
+- 流式解析支持 1000+ 火焰图文件，分层抽样保证代表性
+- 6 条 ARM 性能规则自动匹配（RLE 解码、哈希分配器、哈希计算、哈希表探测、JSON 解析、CollectList）
+- 可配置业务关键词（默认 Gluten+Velox，可切换 ClickHouse / 纯 Java 等）
+
+详见 [velox-flamegraph-analyzer-skill/README.md](velox-flamegraph-analyzer-skill/README.md)
+
 #### extract-spark-ui-metrics
 
 Spark UI / API 算子级 Metrics 提取技能 —— 从 Spark History Server 的 `details=true` JSON 中提取 HashAgg / Join / Sort 等算子的输入输出行数、CTE 执行次数与复用关系，并按强制结构输出 Markdown 文档。
@@ -216,7 +226,13 @@ OmniSkill/
 │   ├── SKILL.md
 │   └── scripts/
 │
-├── extract-spark-ui-metrics/           ← Spark UI / API 算子级 Metrics 提取
+│── velox-flamegraph-analyzer-skill/    ← Velox 火焰图全链路瓶颈分析
+│   ├── SKILL.md
+│   ├── README.md
+│   ├── scripts/
+│   └── examples/
+│
+ ├── extract-spark-ui-metrics/           ← Spark UI / API 算子级 Metrics 提取
 │   └── SKILL.md
 │
 ├── generate-sql-testcases/             ← Spark 表达式测试 SQL 生成
