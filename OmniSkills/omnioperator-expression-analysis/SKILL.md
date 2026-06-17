@@ -1,6 +1,6 @@
 ---
 name: omnioperator-expression-analysis
-description: Full-repo scan of Velox / Spark SQL / OmniOperator expression support status, generating an ecosystem benchmark report. Triggers: expression coverage research, competitive analysis, Omni missing expression inventory, type matrix analysis.
+description: "Full-repo scan of Velox / Spark SQL / OmniOperator expression support status, generating an ecosystem benchmark report. Triggers: expression coverage research, competitive analysis, Omni missing expression inventory, type matrix analysis."
 ---
 
 # Expression Ecosystem Status Analysis Skill
