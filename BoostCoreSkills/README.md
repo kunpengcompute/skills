@@ -119,6 +119,7 @@ npx skills add https://gitcode.com/boostkit/skills.git --all
 | 15 | theory-driven-pipeline-optimization | skills/theory-driven-pipeline-optimization | 面向计算密集型 kernel 的理论性能上限分析：识别核心指令和依赖链，编写微基准测量指令时延、吞吐和组合执行成本，再根据算法指令计数、依赖图和数据移动推导 theoretical cycles/unit、理论吞吐上限和优化 headroom。 | 韦安琪 | 韦安琪 |
 | 16 | kunpeng-library-opportunity | skills/kunpeng-library-opportunity | 分析运行中的 Linux C/C++ 服务、例如RPC 服务组件，识别动态库、疑似静态链接库、ELF 与 proc 证据，结合 perf-hotspot 采样结果判断鲲鹏 BoostKit/BoostCore 库使能机会，例如 KAE、zlib、zstd、lz4、snappy、kpglibc、protobuf、sonic-cpp、KQMalloc、和 AVX2KI。 | 龚晓婷 | 龚晓婷 |
 | 17 | kunpeng-cpu-opt-guide | skills/kunpeng-cpu-opt-guide | 鲲鹏处理器微架构优化参考（TSV110/HIP09/HIP12），覆盖指令延迟、流水线端口、性能陷阱、CPU 自动检测与横向对比。供其他性能优化 Skill 引用。 | 李彦成 | 李彦成 |
+| 18 | tech-daily-brief | skills/tech-daily-brief | 把一组类型（如 GCC/LLVM/Go/Java/AI编译/内存库）当作一个关注集，每天产出一份中文《每日简报》md——按类型平铺、每类型各带「论文/资讯/上游代码」三维度；每个「类型×维度」的信息源由 LLM 自动发现并缓存为「源画像」、每日复用增量去重；反爬源走「关注点扇出 site: + RSS + Wayback CDX」绕行；产物双归档到公开仓库 + ai-docs。 | 黄晓权 | 黄晓权 |
 
 
 
