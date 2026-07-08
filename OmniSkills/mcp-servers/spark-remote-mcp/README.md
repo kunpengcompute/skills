@@ -79,6 +79,7 @@ spark-remote-mcp/
 | `run_spark_test_all` | 执行 Native Spark 全量测试 | 原生 Spark 基准 |
 | `run_e2e_sql` | **正确性校验**：用 Omni 引擎执行 SQL，返回查询结果 + 算子下推信息 | 验证优化后结果是否一致 |
 | `run_e2e_sql_native` | 用原生 Spark（无 Omni/Gluten）执行 SQL | 与 Omni 结果对比 |
+| `debug_e2e_sql_columnar` | **正确性调试**：逐个关闭列式算子配置并对比 Native 基线 | 定位哪个 columnar 开关让结果恢复一致或异常消失 |
 | `compile_omni` | 在 Docker 容器内编译 OmniOperator + 运行 GTest UT | 验证代码可编译、UT 通过 |
 | `compile_gluten` | 编译 Omni + Gluten 并部署到宿主机 | 编译新版本供性能测试 |
 | `get_compile_log` | 读取最新编译/测试日志 | 查看进度或排错 |
@@ -91,10 +92,12 @@ spark-remote-mcp/
 ```
 性能计时 → run_spark_test_operator（每次只跑 1 次，返回耗时）
 正确性校验 → run_e2e_sql（返回查询结果行 + Omni 算子 + Fallback 告警）
+列式算子定位 → debug_e2e_sql_columnar（多轮执行，逐个 SET <columnar-key>=false）
 ```
 
 - **不要用 `run_e2e_sql` 做性能计时**——它的耗时包含 SHS 查询和截图，不准确
 - **不要用 `run_spark_test_operator` 做正确性校验**——它不返回查询结果内容
+- **不要用 `debug_e2e_sql_columnar` 做性能判断**——它是多轮调试编排，耗时只用于排错参考
 
 ## 典型工作流
 
@@ -117,11 +120,40 @@ spark-remote-mcp/
 3. 对比两者结果是否一致
 ```
 
+### 列式算子定位
+
+```
+1. debug_e2e_sql_columnar(
+     sql="SELECT ...",
+     database="tpcds_sf1",
+     toggles=[
+       "spark.gluten.sql.columnar.project",
+       "spark.gluten.sql.columnar.filter",
+       "spark.gluten.sql.columnar.broadcastJoin"
+     ],
+     timeout_sec=300,
+     stop_on_match=true,
+     include_native_baseline=true
+   )
+2. 查看报告中首个 match_native=yes 或 error_recovered=yes 的配置
+3. 围绕该配置对应算子继续分析物理计划和日志
+```
+
 ### 编译验证
 
 ```
 1. compile_omni(branch="feature_x")     # 编译 + UT，产物留在容器内
 2. get_compile_log()                     # 查看日志（编译进行中也可调用）
+```
+
+### 容器内功能调试
+
+当前统一使用 `compile_gluten` 编译 Omni + Gluten。
+
+```
+1. compile_gluten(omni_branch, gluten_branch)
+2. run_e2e_sql(sql="SELECT ...", database="tpcds_sf1")
+3. debug_e2e_sql_columnar(sql="SELECT ...", database="tpcds_sf1")
 ```
 
 ## 环境变量参考
@@ -207,6 +239,9 @@ python mcp_client.py compile_gluten <omni_url> <omni_branch> <gluten_url> <glute
 # 执行 E2E SQL（从文件读取 SQL）
 python mcp_client.py run_e2e_sql test.sql [database] [timeout_sec]
 python mcp_client.py run_e2e_sql_native test.sql [database] [timeout_sec]
+
+# 调试列式算子开关（toggles 为空时使用默认列表）
+python mcp_client.py debug_e2e_sql_columnar test.sql [database] [timeout_sec] [toggle1,toggle2,...] [stop_on_match] [include_native_baseline]
 
 # 性能测试（传 query_id 或 SQL 文件路径）
 python mcp_client.py run_spark_test_operator q7           # 用 TPC-DS q7

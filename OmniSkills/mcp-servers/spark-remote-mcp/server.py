@@ -13,6 +13,7 @@ E2E_SQL_TIMEOUT_SECONDS（默认 300 秒），
 SHS_BASE_URL（Spark History Server 地址，默认空字符串 ""；如需启用 run_e2e_sql 的 SHS 截图功能
  必须显式配置，形如 http://<host>:18080），
 SHS_INIT_WAIT_SECONDS（run_e2e_sql 查 SHS 前的初始等待秒数，默认 12；SHS 默认每 10s 刷新一次 event log）。
+debug_e2e_sql_columnar 可在正确性调试时逐个关闭列式算子配置，定位结果不一致或异常消失的可疑开关。
 若设置 SSH_PASSWORD，远程命令可用 Paramiko；否则远程命令走系统 ssh。拉取火焰图始终用 Paramiko，无密码时请配置 SSH_IDENTITY。
 出于安全考虑：SSH_HOST / SSH_USER 没有硬编码默认值，必须在 .env 显式配置，缺失时 main() 启动会 SystemExit。
 """
@@ -44,6 +45,8 @@ mcp = FastMCP(
         " 【工具用途区分——必读】"
         " run_e2e_sql：正确性校验专用，每次只应调用一次，返回查询结果行用于与基准对比；"
         " 禁止用 run_e2e_sql 做性能计时或重复执行以获取热启动数据。"
+        " debug_e2e_sql_columnar：正确性调试专用，围绕同一 SQL 多轮执行，逐个关闭列式算子配置，"
+        " 用于定位哪个 columnar 开关会让结果恢复一致或异常消失；不用于性能计时。"
         " run_spark_test_operator：性能测试专用，**每次只跑 1 次**，返回该次端到端耗时；"
         " 若要冷启动+热启动数据需由调用方连续多次调用（典型：冷 1 次 + 热 3 次，取热均值）。"
         " 默认不抓火焰图；需要画像时传 flame_enabled=true 单独跑一次，再调用 fetch_spark_flame_graphs。"
@@ -58,6 +61,19 @@ mcp = FastMCP(
 
 # Paramiko 默认把握手日志打到 ERROR，在 Cursor MCP 日志里会像故障；不影响功能
 logging.getLogger("paramiko").setLevel(logging.WARNING)
+
+DEFAULT_COLUMNAR_TOGGLES = [
+    "spark.gluten.sql.columnar.project",
+    "spark.gluten.sql.columnar.filter",
+    "spark.gluten.sql.columnar.hashagg",
+    "spark.gluten.sql.columnar.broadcastJoin",
+    "spark.gluten.sql.columnar.shuffledHashJoin",
+    "spark.gluten.sql.columnar.sortMergeJoin",
+    "spark.gluten.sql.columnar.sort",
+    "spark.gluten.sql.columnar.window",
+    "spark.gluten.sql.columnar.filescan",
+    "spark.gluten.sql.columnar.columnarToRow",
+]
 
 
 def _env(name: str, default: str = "") -> str:
@@ -394,6 +410,81 @@ def _build_e2e_sql_command(sql: str, database: str = "") -> str:
     return f"{write_cmd} && {run_cmd}; {cleanup}"
 
 
+def _extract_query_rows(lines: list[str]) -> list[str]:
+    """Extract actual query result rows from spark-sql mixed stdout/stderr output."""
+    query_rows: list[str] = []
+    capture = False
+    spark_set_output_re = re.compile(r"^spark\.[A-Za-z0-9_.-]+\t.*$")
+
+    ignore_prefixes = (
+        "Warning:",
+        "Setting default log level",
+        "To adjust logging level",
+        "Spark Web UI available at ",
+        "Spark master:",
+    )
+    ignore_contains = (
+        "Application Id:",
+        "Time taken:",
+    )
+
+    for raw_line in lines:
+        line = raw_line.rstrip()
+        stripped = line.strip()
+        if not stripped:
+            continue
+
+        if stripped.startswith("Time taken:"):
+            capture = False
+            continue
+
+        if stripped in ("", "spark-sql>"):
+            continue
+
+        if stripped.startswith("use "):
+            continue
+
+        if stripped.startswith("ERROR: ld.so:"):
+            continue
+
+        # `SET spark.xxx=false;` in spark-sql prints one tab-separated config row
+        # before the real query result. Treat it as command echo, not result data.
+        if spark_set_output_re.match(stripped):
+            continue
+
+        if any(stripped.startswith(prefix) for prefix in ignore_prefixes):
+            continue
+
+        if any(token in stripped for token in ignore_contains):
+            continue
+
+        if re.match(r"^\d{2}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}", stripped):
+            continue
+        if re.match(r"^(?:INFO|WARN|ERROR|DEBUG) ", stripped):
+            continue
+
+        if stripped == "Time taken":
+            continue
+
+        if capture:
+            query_rows.append(line)
+            continue
+
+        if "\t" in line:
+            query_rows.append(line)
+            capture = True
+
+    return query_rows
+
+
+def _extract_fetched_count(lines: list[str]) -> int | None:
+    for line in reversed(lines):
+        m = re.search(r"Fetched\s+(\d+)\s+row\(s\)", line)
+        if m:
+            return int(m.group(1))
+    return None
+
+
 def _parse_spark_e2e_output(merged_output: str, shs_info: dict | None = None) -> str:
     """从合并的 spark-sql 输出中提取 App ID、耗时、Omni 算子、Fallback 告警及查询结果。
 
@@ -404,7 +495,8 @@ def _parse_spark_e2e_output(merged_output: str, shs_info: dict | None = None) ->
 
     log_re = re.compile(r"^\d{2}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}|^(?:INFO|WARN|ERROR|DEBUG) ")
     log_lines = [l for l in lines if log_re.match(l)]
-    result_lines = [l for l in lines if not log_re.match(l) and l.strip()]
+    query_rows = _extract_query_rows(lines)
+    fetched_count = _extract_fetched_count(lines)
 
     # App ID（local-XXXXXXXXXX 或 application_XXXXX_XXXX）—— 搜全部行，含控制台输出
     app_id = "未找到"
@@ -494,11 +586,14 @@ def _parse_spark_e2e_output(merged_output: str, shs_info: dict | None = None) ->
     parts.append("")
 
     parts.append("─── 查询结果 ────────────────────────────────")
-    if result_lines:
-        show = result_lines[-40:] if len(result_lines) > 40 else result_lines
-        if len(result_lines) > 40:
-            parts.append(f"  （共 {len(result_lines)} 行，显示末尾 40 行）")
+    if query_rows:
+        show = query_rows[-40:] if len(query_rows) > 40 else query_rows
+        total_rows = fetched_count if fetched_count is not None else len(query_rows)
+        if len(query_rows) > 40:
+            parts.append(f"  （共 {total_rows} 行，显示末尾 40 行）")
         parts.extend(show)
+        if fetched_count is not None and fetched_count != len(query_rows):
+            parts.append(f"  （Spark 统计返回 {fetched_count} 行，本地提取到 {len(query_rows)} 行结果）")
     else:
         parts.append("  （无查询输出行）")
 
@@ -524,7 +619,8 @@ def _parse_spark_native_output(merged_output: str) -> str:
 
     log_re = re.compile(r"^\d{2}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}|^(?:INFO|WARN|ERROR|DEBUG) ")
     log_lines = [l for l in lines if log_re.match(l)]
-    result_lines = [l for l in lines if not log_re.match(l) and l.strip()]
+    query_rows = _extract_query_rows(lines)
+    fetched_count = _extract_fetched_count(lines)
 
     app_id = "未找到"
     for line in lines:
@@ -561,15 +657,114 @@ def _parse_spark_native_output(merged_output: str) -> str:
     parts.append(f"App ID : {app_id}  |  耗时 : {time_taken}")
     parts.append("")
     parts.append("─── 查询结果 ────────────────────────────────")
-    if result_lines:
-        show = result_lines[-40:] if len(result_lines) > 40 else result_lines
-        if len(result_lines) > 40:
-            parts.append(f"  （共 {len(result_lines)} 行，显示末尾 40 行）")
+    if query_rows:
+        show = query_rows[-40:] if len(query_rows) > 40 else query_rows
+        total_rows = fetched_count if fetched_count is not None else len(query_rows)
+        if len(query_rows) > 40:
+            parts.append(f"  （共 {total_rows} 行，显示末尾 40 行）")
         parts.extend(show)
+        if fetched_count is not None and fetched_count != len(query_rows):
+            parts.append(f"  （Spark 统计返回 {fetched_count} 行，本地提取到 {len(query_rows)} 行结果）")
     else:
         parts.append("  （无查询输出行）")
 
     return "\n".join(parts)
+
+
+def _extract_e2e_digest(merged_output: str) -> dict:
+    """Extract a stable digest from spark-sql output for debug comparisons."""
+    lines = merged_output.splitlines()
+    query_rows = [l.rstrip() for l in _extract_query_rows(lines)]
+    fetched_count = _extract_fetched_count(lines)
+
+    app_id = "未找到"
+    for line in lines:
+        m = re.search(r"(local-\d+|application_\d{13}_\d{4})", line)
+        if m:
+            app_id = m.group(1)
+            break
+
+    time_taken = "未知"
+    for line in reversed(lines):
+        m = re.search(r"Time taken: ([\d.]+) seconds.*Fetched", line)
+        if m:
+            time_taken = m.group(1) + "s"
+            break
+    if time_taken == "未知":
+        for line in reversed(lines):
+            m = re.search(r"Time taken: ([\d.]+) seconds", line)
+            if m:
+                time_taken = m.group(1) + "s"
+                break
+
+    error_kws = (
+        "MEM_CAP_EXCEEDED", "OmniException", "Exception in thread",
+        "FAILED", "Error running query", "SparkException",
+    )
+    error_lines = [l.strip() for l in lines if any(k in l for k in error_kws)]
+
+    fallback_kws = (
+        "FallbackNode", "Validation failed", "native validation failed",
+        "GlutenFallbackReporter", "fell back to",
+    )
+    fallback_lines = [
+        l.strip() for l in lines if any(k.lower() in l.lower() for k in fallback_kws)
+    ]
+
+    omni_ops: dict[str, int] = {}
+    for line in lines:
+        for m in re.finditer(r"Omni\w+(?:Exec|Transformer\w*|Exchange\w*|ToRow\w*)", line):
+            name = m.group()
+            omni_ops[name] = omni_ops.get(name, 0) + 1
+
+    return {
+        "app_id": app_id,
+        "time_taken": time_taken,
+        "result_lines": query_rows,
+        "result_tail": query_rows[-40:] if len(query_rows) > 40 else query_rows,
+        "result_count": fetched_count if fetched_count is not None else len(query_rows),
+        "query_row_count": len(query_rows),
+        "fetched_count": fetched_count,
+        "error_lines": error_lines,
+        "fallback_count": len(fallback_lines),
+        "fallback_sample": fallback_lines[:5],
+        "omni_ops": omni_ops,
+    }
+
+
+def _compare_result_rows(actual: list[str], baseline: list[str] | None) -> dict[str, bool | None]:
+    if baseline is None:
+        return {"exact": None, "sorted": None}
+    return {
+        "exact": actual == baseline,
+        "sorted": sorted(actual) == sorted(baseline),
+    }
+
+
+def _run_e2e_sql_once(sql: str, database: str, timeout_sec: int, native: bool, log_prefix: str) -> dict:
+    """Run one E2E SQL command and return raw output plus parsed digest."""
+    final_sql = f"USE {database};\n{sql}" if database else sql
+    cmd = (
+        _build_e2e_sql_native_command(final_sql, database)
+        if native else
+        _build_e2e_sql_command(final_sql, database)
+    )
+    log_path = _new_compile_log_path(log_prefix)
+    code, body = _run_remote_with_exit_and_log(cmd, log_path, timeout_sec)
+
+    try:
+        with open(log_path, "r", encoding="utf-8", errors="replace") as f:
+            full_output = f.read()
+    except OSError:
+        full_output = body
+
+    digest = _extract_e2e_digest(full_output)
+    digest.update({
+        "exit_code": code,
+        "success": code == 0 and not digest["error_lines"],
+        "log_path": log_path,
+    })
+    return digest
 
 
 def _build_compile_omni_remote_command(git_repo_url: str, branch: str) -> str:
@@ -1251,6 +1446,39 @@ async def compile_omni(branch: str, git_repo_url: str = "") -> str:
     return await asyncio.to_thread(_go)
 
 
+def _resolve_gluten_compile_inputs(
+    omni_branch: str,
+    gluten_branch: str,
+    omni_git_repo_url: str,
+    gluten_git_repo_url: str,
+) -> tuple[str, str, str, str, list[str]]:
+    """Resolve common Omni/Gluten compile inputs and return missing-field messages."""
+    o_br = (omni_branch or "").strip()
+    g_br = (gluten_branch or "").strip()
+    o_url = (omni_git_repo_url or "").strip()
+    g_url = (gluten_git_repo_url or "").strip()
+    if not o_url:
+        o_url = _resolve_git_remote_url("OmniOperator")
+    if not g_url:
+        g_url = _resolve_git_remote_url("Gluten")
+    missing: list[str] = []
+    if not o_url:
+        missing.append(
+            "Omni 的 gitcode 代码仓地址（参数 omni_git_repo_url，例如 https://gitcode.com/<your_fork>/OmniOperator.git；"
+            "或在 PROJECT_ROOT/OmniOperator 下配置 git remote 让本工具自动读取）"
+        )
+    if not o_br:
+        missing.append("Omni 的分支名（参数 omni_branch，例如 2026_330_poc）")
+    if not g_url:
+        missing.append(
+            "Gluten 的 gitcode 代码仓地址（参数 gluten_git_repo_url，例如 https://gitcode.com/<your_fork>/Gluten.git；"
+            "或在 PROJECT_ROOT/Gluten 下配置 git remote 让本工具自动读取）"
+        )
+    if not g_br:
+        missing.append("Gluten 的分支名（参数 gluten_branch，例如 2026_330_poc）")
+    return o_url, o_br, g_url, g_br, missing
+
+
 @mcp.tool()
 async def compile_gluten(
     omni_branch: str,
@@ -1276,29 +1504,9 @@ async def compile_gluten(
     可用 get_compile_log 读取完整日志。
     超时：COMPILE_GLUTEN_TIMEOUT_SECONDS（未设置时默认至少 7200 秒）。
     """
-    o_br = (omni_branch or "").strip()
-    g_br = (gluten_branch or "").strip()
-    o_url = (omni_git_repo_url or "").strip()
-    g_url = (gluten_git_repo_url or "").strip()
-    if not o_url:
-        o_url = _resolve_git_remote_url("OmniOperator")
-    if not g_url:
-        g_url = _resolve_git_remote_url("Gluten")
-    missing: list[str] = []
-    if not o_url:
-        missing.append(
-            "Omni 的 gitcode 代码仓地址（参数 omni_git_repo_url，例如 https://gitcode.com/<your_fork>/OmniOperator.git；"
-            "或在 PROJECT_ROOT/OmniOperator 下配置 git remote 让本工具自动读取）"
-        )
-    if not o_br:
-        missing.append("Omni 的分支名（参数 omni_branch，例如 2026_330_poc）")
-    if not g_url:
-        missing.append(
-            "Gluten 的 gitcode 代码仓地址（参数 gluten_git_repo_url，例如 https://gitcode.com/<your_fork>/Gluten.git；"
-            "或在 PROJECT_ROOT/Gluten 下配置 git remote 让本工具自动读取）"
-        )
-    if not g_br:
-        missing.append("Gluten 的分支名（参数 gluten_branch，例如 2026_330_poc）")
+    o_url, o_br, g_url, g_br, missing = _resolve_gluten_compile_inputs(
+        omni_branch, gluten_branch, omni_git_repo_url, gluten_git_repo_url
+    )
     if missing:
         return (
             "无法执行 Gluten 编译：缺少或未填写必填参数，请先向用户确认后再调用本工具。\n"
@@ -1537,6 +1745,188 @@ async def run_e2e_sql_native(sql: str, database: str = "", timeout_sec: int = 30
         db_hint = f"  数据库 : {db_s}\n" if db_s else ""
         status = "【Native 执行成功】" if code == 0 else f"【Native 执行失败（退出码 {code}）】"
         return f"{status}\n{db_hint}\n{summary}\n\n日志已保存：{log_path}"
+
+    return await asyncio.to_thread(_go)
+
+
+@mcp.tool()
+async def debug_e2e_sql_columnar(
+    sql: str,
+    database: str = "",
+    toggles: list[str] | None = None,
+    timeout_sec: int = 300,
+    stop_on_match: bool = True,
+    include_native_baseline: bool = True,
+) -> str:
+    """【正确性调试专用】逐个关闭列式算子配置，定位 Omni SQL 结果不一致或异常的可疑开关。
+
+    本工具会围绕同一条 SQL 做多轮执行：
+      1. 可选执行 Native Spark，作为正确性基线；
+      2. 执行原始 Omni SQL；
+      3. 对 toggles 中的配置逐个追加 `SET <key>=false;` 后执行 Omni SQL；
+      4. 对比每轮查询结果与 Native 基线（若启用），报告哪个开关让结果恢复一致或异常消失。
+
+    参数说明：
+      sql                     一条或多条 SQL（分号分隔）。
+      database                Hive/Spark 数据库名；非空时自动添加 USE <database>;。
+      toggles                 待测试的 Spark/Gluten 配置 key 列表。为空时使用内置高频列式算子开关。
+      timeout_sec             每一轮执行的超时秒数，默认 300s；也可通过 E2E_SQL_TIMEOUT_SECONDS 环境变量覆盖。
+      stop_on_match           找到首个与 Native 结果一致的 toggle 后是否停止，默认 True。
+      include_native_baseline 是否先跑 Native Spark 作为基线，默认 True。
+
+    返回 Markdown 调试报告。不要把本工具用于性能计时。
+    """
+    sql_s = (sql or "").strip()
+    if not sql_s:
+        return "无法执行：sql 参数为空，请传入有效的 SQL 语句。"
+
+    db_s = (database or "").strip()
+    env_to = _env("E2E_SQL_TIMEOUT_SECONDS")
+    to = int(env_to) if env_to else max(60, timeout_sec)
+
+    raw_toggles = toggles if toggles is not None else DEFAULT_COLUMNAR_TOGGLES
+    cleaned_toggles: list[str] = []
+    seen: set[str] = set()
+    for item in raw_toggles:
+        key = (item or "").strip()
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        cleaned_toggles.append(key)
+
+    if not cleaned_toggles:
+        return "无法执行：toggles 为空，请传入至少一个 Spark/Gluten columnar 配置 key。"
+
+    def _go() -> str:
+        parts: list[str] = []
+        parts.append("# Columnar Debug Report")
+        parts.append("")
+        if db_s:
+            parts.append(f"- 数据库：`{db_s}`")
+        parts.append(f"- 每轮超时：`{to}s`")
+        parts.append(f"- stop_on_match：`{stop_on_match}`")
+        parts.append(f"- include_native_baseline：`{include_native_baseline}`")
+        parts.append("")
+
+        baseline_result: list[str] | None = None
+        native_digest: dict | None = None
+        if include_native_baseline:
+            native_digest = _run_e2e_sql_once(
+                sql_s, db_s, to, native=True, log_prefix="debug_e2e_native"
+            )
+            baseline_result = native_digest["result_lines"]
+
+        original = _run_e2e_sql_once(
+            sql_s, db_s, to, native=False, log_prefix="debug_e2e_omni_original"
+        )
+        original_match = _compare_result_rows(original["result_lines"], baseline_result)
+        original_error_signature = bool(original["error_lines"])
+
+        trials: list[dict] = []
+        first_exact_match: dict | None = None
+        first_sorted_match: dict | None = None
+        first_error_recovery: dict | None = None
+        skip_trials_reason = ""
+
+        if baseline_result is not None and original_match["exact"]:
+            skip_trials_reason = "Original Omni 已与 Native 基线严格一致。"
+        elif baseline_result is not None and original_match["sorted"]:
+            skip_trials_reason = "Original Omni 与 Native 基线仅存在顺序差异。"
+        else:
+            for idx, key in enumerate(cleaned_toggles, start=1):
+                trial_sql = f"SET {key}=false;\n{sql_s}"
+                digest = _run_e2e_sql_once(
+                    trial_sql, db_s, to, native=False, log_prefix=f"debug_e2e_toggle_{idx}"
+                )
+                match = _compare_result_rows(digest["result_lines"], baseline_result)
+                error_recovered = original_error_signature and not digest["error_lines"] and digest["exit_code"] == 0
+                row = {
+                    "idx": idx,
+                    "toggle": key,
+                    "digest": digest,
+                    "match_exact": match["exact"],
+                    "match_sorted": match["sorted"],
+                    "error_recovered": error_recovered,
+                }
+                trials.append(row)
+                if row["match_exact"] and first_exact_match is None:
+                    first_exact_match = row
+                if row["match_sorted"] and first_sorted_match is None:
+                    first_sorted_match = row
+                if error_recovered and first_error_recovery is None:
+                    first_error_recovery = row
+                if stop_on_match and (row["match_exact"] or row["match_sorted"] or error_recovered):
+                    break
+
+        parts.append("## Baseline")
+        if native_digest is None:
+            parts.append("- Native Spark：未执行")
+        else:
+            native_status = "成功" if native_digest["success"] else f"失败(exit={native_digest['exit_code']})"
+            parts.append(
+                f"- Native Spark：{native_status}，结果行数 `{native_digest['result_count']}`，"
+                f"耗时 `{native_digest['time_taken']}`，日志 `{native_digest['log_path']}`"
+            )
+        original_status = "成功" if original["success"] else f"失败(exit={original['exit_code']})"
+        match_exact_text = "yes" if original_match["exact"] else ("no" if baseline_result is not None else "n/a")
+        match_sorted_text = "yes" if original_match["sorted"] else ("no" if baseline_result is not None else "n/a")
+        parts.append(
+            f"- Original Omni：{original_status}，结果行数 `{original['result_count']}`，"
+            f"match_exact `{match_exact_text}`，match_sorted `{match_sorted_text}`，"
+            f"Fallback `{original['fallback_count']}`，日志 `{original['log_path']}`"
+        )
+        if original["error_lines"]:
+            parts.append(f"- Original Omni 错误样例：`{original['error_lines'][0][:180]}`")
+        parts.append("")
+
+        parts.append("## Trials")
+        if skip_trials_reason:
+            parts.append(f"- 已跳过 toggle trials：{skip_trials_reason}")
+        else:
+            parts.append("| # | Toggle | Status | Match Exact | Match Sorted | Error Recovered | Rows | Fallback | Time | Log |")
+            parts.append("|---|--------|--------|-------------|--------------|-----------------|------|----------|------|-----|")
+            for row in trials:
+                digest = row["digest"]
+                status = "success" if digest["success"] else f"fail({digest['exit_code']})"
+                match_exact = "yes" if row["match_exact"] else ("no" if baseline_result is not None else "n/a")
+                match_sorted = "yes" if row["match_sorted"] else ("no" if baseline_result is not None else "n/a")
+                recovered = "yes" if row["error_recovered"] else "no"
+                parts.append(
+                    f"| {row['idx']} | `{row['toggle']}=false` | {status} | {match_exact} | {match_sorted} | "
+                    f"{recovered} | {digest['result_count']} | {digest['fallback_count']} | "
+                    f"{digest['time_taken']} | `{digest['log_path']}` |"
+                )
+        parts.append("")
+
+        parts.append("## Conclusion")
+        if baseline_result is not None and original_match["exact"]:
+            parts.append("- Original Omni 已与 Native 基线严格一致，无需继续关闭 columnar toggle。")
+        elif baseline_result is not None and original_match["sorted"]:
+            parts.append("- Original Omni 与 Native 基线仅存在顺序差异，无需继续关闭 columnar toggle。")
+        elif first_exact_match is not None:
+            parts.append(
+                f"- 首个让 Omni 结果与 Native 基线严格一致的配置："
+                f"`{first_exact_match['toggle']}=false`。"
+            )
+        elif first_sorted_match is not None:
+            parts.append(
+                f"- 首个让 Omni 结果在排序后与 Native 基线一致的配置："
+                f"`{first_sorted_match['toggle']}=false`。"
+            )
+        elif first_error_recovery is not None:
+            parts.append(
+                f"- 首个让原始 Omni 异常消失的配置："
+                f"`{first_error_recovery['toggle']}=false`。"
+            )
+        elif baseline_result is None:
+            parts.append("- 未启用 Native 基线，仅完成各 toggle 执行状态采集。")
+        else:
+            parts.append("- 本轮测试未发现单个 columnar toggle 能让结果严格一致，或仅通过排序后与 Native 基线一致。")
+
+        if first_exact_match is not None or first_sorted_match is not None or first_error_recovery is not None:
+            parts.append("- 建议下一步围绕该配置对应的算子查看物理计划、Fallback 告警和执行日志。")
+
+        return "\n".join(parts)
 
     return await asyncio.to_thread(_go)
 

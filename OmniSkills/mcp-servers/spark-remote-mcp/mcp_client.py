@@ -1,16 +1,43 @@
 import asyncio
+import json
 import sys
 import os
 from pathlib import Path
 
 sys.stdout.reconfigure(encoding='utf-8')
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+THIS_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(THIS_DIR))
 
-os.environ["SSH_HOST"] = "<REMOTE HOST>"
-os.environ["SSH_USER"] = "<USER>"
-os.environ["SSH_PASSWORD"] = "<PASSWORD>"
-os.environ["SSH_PORT"] = "<PORT>"
+
+def _load_mcp_env() -> None:
+    """Load spark-remote-test env from the repo-level .mcp.json when available."""
+    candidate_roots = [
+        THIS_DIR.parent.parent,  # repo root: OmniSkills/
+        Path.cwd(),
+    ]
+    for root in candidate_roots:
+        mcp_json = root / ".mcp.json"
+        if not mcp_json.exists():
+            continue
+        try:
+            data = json.loads(mcp_json.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        env = (
+            data.get("mcpServers", {})
+            .get("spark-remote-test", {})
+            .get("env", {})
+        )
+        if not isinstance(env, dict):
+            continue
+        for key, value in env.items():
+            if isinstance(value, str):
+                os.environ[key] = value
+        return
+
+
+_load_mcp_env()
 
 from server import mcp
 
@@ -44,7 +71,7 @@ async def main():
             gluten_branch=sys.argv[5]
         )
         print(result)
-    
+
     elif tool_name == "run_e2e_sql":
         if len(sys.argv) < 3:
             print("Usage: python mcp_client.py run_e2e_sql <sql_file> [database] [timeout_sec]")
@@ -72,6 +99,33 @@ async def main():
             sql=sql,
             database=database,
             timeout_sec=timeout
+        )
+        print(result)
+
+    elif tool_name == "debug_e2e_sql_columnar":
+        if len(sys.argv) < 3:
+            print("Usage: python mcp_client.py debug_e2e_sql_columnar <sql_file> [database] [timeout_sec] [toggle1,toggle2,...] [stop_on_match] [include_native_baseline]")
+            return
+        with open(sys.argv[2], 'r', encoding='utf-8') as f:
+            sql = f.read()
+        database = sys.argv[3] if len(sys.argv) > 3 else ""
+        timeout = int(sys.argv[4]) if len(sys.argv) > 4 else 300
+        toggles = None
+        if len(sys.argv) > 5 and sys.argv[5].strip():
+            toggles = [x.strip() for x in sys.argv[5].split(",") if x.strip()]
+        stop_on_match = True
+        if len(sys.argv) > 6:
+            stop_on_match = sys.argv[6].lower() in ("1", "true", "yes", "on")
+        include_native_baseline = True
+        if len(sys.argv) > 7:
+            include_native_baseline = sys.argv[7].lower() in ("1", "true", "yes", "on")
+        result = await mcp._tool_manager._tools["debug_e2e_sql_columnar"].fn(
+            sql=sql,
+            database=database,
+            toggles=toggles,
+            timeout_sec=timeout,
+            stop_on_match=stop_on_match,
+            include_native_baseline=include_native_baseline,
         )
         print(result)
     
