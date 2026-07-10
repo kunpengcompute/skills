@@ -14,3 +14,13 @@ repos:
         args: ['--severity=critical']
         stages: [pre-commit]
         verbose: true
+        pass_filenames: false
+  - repo: https://gitcode.com/gh_mirrors/pr/pre-commit-hooks # 国内网络可使用gitcode镜像仓加速下载
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace # 移除行尾空白字符
+      - id: end-of-file-fixer # 确保文件以换行符结尾
+      - id: check-yaml # 校验 YAML 文件语法
+      - id: check-json # 校验 JSON 文件语法
+      - id: check-xml # 校验 XML 文件语法
+      - id: detect-private-key # 检测私钥/敏感信息泄露
