@@ -22,7 +22,7 @@
             ├── SKILL.md                          # Skill 主文件，生成流程指引
             ├── README.md                         # 本文件
             ├── scripts/
-            │   └── test_script_template.py       # 测试脚本模板
+            │   └── test_script_template.py.tmpl  # 测试脚本模板（占位符，非可执行 .py）
             └── references/
                 ├── test_cases_schema.json        # 测试用例 JSON 结构定义
                 ├── config_schema.json            # 配置文件 JSON 结构定义

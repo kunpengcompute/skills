@@ -1,6 +1,6 @@
 ---
 name: omnioperator-status-analysis
-description: Full-repo scan of Spark SQL / Gluten / OmniOperator / Velox physical operator support status, generating an ecosystem benchmark report. Triggers: operator coverage research, Omni missing operator inventory, Spark physical operator pushdown status, Gluten fallback analysis, Substrait Rel to Omni PlanNode mapping matrix, operator type/config support matrix, competitive analysis vs Velox. Use this skill when the user asks "which operators are currently supported", "which operators are missing", "operator status analysis", "operator coverage", "fallback inventory".
+description: "Full-repo scan of Spark SQL / Gluten / OmniOperator / Velox physical operator support status, generating an ecosystem benchmark report. Triggers: operator coverage research, Omni missing operator inventory, Spark physical operator pushdown status, Gluten fallback analysis, Substrait Rel to Omni PlanNode mapping matrix, operator type/config support matrix, competitive analysis vs Velox. Use this skill when the user asks \"which operators are currently supported\", \"which operators are missing\", \"operator status analysis\", \"operator coverage\", \"fallback inventory\"."
 ---
 
 # Operator Ecosystem Status Analysis Skill

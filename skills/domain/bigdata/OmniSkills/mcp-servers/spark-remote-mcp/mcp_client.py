@@ -13,7 +13,7 @@ sys.path.insert(0, str(THIS_DIR))
 def _load_mcp_env() -> None:
     """Load spark-remote-test env from the repo-level .mcp.json when available."""
     candidate_roots = [
-        THIS_DIR.parent.parent,  # repo root: OmniSkills/
+        THIS_DIR.parent.parent,  # OmniSkills skill bundle root
         Path.cwd(),
     ]
     for root in candidate_roots:

@@ -85,7 +85,7 @@ class TestLogger:
         self.info(case_id, f"Command Type: {command_type}")
         self.info(case_id, f"Command String: {command_str}")
 
-    def execution_result(self, case_id: str, return_code: int, stdout: str = '', stderr: str = '':
+    def execution_result(self, case_id: str, return_code: int, stdout: str = '', stderr: str = ''):
         self.info(case_id, f"Return Code: {return_code}")
         if stdout:
             self.debug(case_id, f"STDOUT Preview: {stdout[:500]}")

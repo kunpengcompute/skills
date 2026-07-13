@@ -66,12 +66,12 @@ Also creates:
    - Extract `用例_编号` → filename: `tests/test_<case_id_lowercase>.py`
    - Extract `用例_名称` → class docstring
    - Extract `用例_测试步骤` → test method content
-6. Use template from `scripts/test_script_template.py`
+6. Use template from `scripts/test_script_template.py.tmpl`
 7. After generation, **remind user**: "请修改项目根目录下的 config.json，填写正确的服务器 IP、用户名和密码后再执行测试"
 
 ## Template
 
-See `scripts/test_script_template.py`.
+See `scripts/test_script_template.py.tmpl` (`.py.tmpl` suffix: placeholder syntax is not valid Python; skill-scanner skips non-`.py` templates).
 
 Replace placeholders:
 - `{CASE_ID}` → test case ID, e.g. `Spark_OmniRuntime_Tablewrite_001`
