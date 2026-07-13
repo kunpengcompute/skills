@@ -1,3 +1,12 @@
+---
+name: velox-flamegraph-analyzer-skill
+description: >
+  Analyze async-profiler flame graph HTML files to identify Java, Velox C++,
+  and kernel bottlenecks, map hotspots to Velox modules, provide ARM/aarch64
+  optimization insights, and generate an interactive HTML report with links
+  to original flame graphs.
+---
+
 # Velox Flame Graph Analyzer Skill
 
 Analyze async-profiler flame graph HTML files to identify Java/C++(Velox)/kernel bottlenecks, map hotspots to Velox business code modules, provide ARM/aarch64-specific optimization insights for the Velox engine, and generate an interactive HTML summary report with direct links to original flame graphs.
